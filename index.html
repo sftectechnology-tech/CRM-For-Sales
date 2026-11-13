@@ -6,8 +6,9 @@
     <title>PAF GLOBAL CRM</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Inter & FontAwesome -->
+    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -32,15 +33,15 @@
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 antialiased">
 
-    <!-- Authentication Screen (Login / Register) -->
+    <!-- Authentication Screen (Login / Register / Forgot Password) -->
     <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-8 space-y-6">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-6 sm:p-8 space-y-6">
             <div class="text-center space-y-2">
                 <!-- PAF GLOBAL Logo (PNG) -->
-                <div class="w-28 h-28 mx-auto flex items-center justify-center">
+                <div class="w-24 h-24 sm:w-28 sm:h-28 mx-auto flex items-center justify-center">
                     <img src="PAF LOGO (2).png" alt="PAF GLOBAL Logo" class="w-full h-full object-contain drop-shadow-sm" onerror="this.onerror=null; this.src='https://placehold.co/200x200/ffffff/111111?text=PAF+GLOBAL';">
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900">PAF GLOBAL CRM</h1>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-900">PAF GLOBAL CRM</h1>
                 <p id="auth-subtitle" class="text-xs text-slate-500">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
             </div>
 
@@ -55,7 +56,7 @@
             <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
                 <div id="register-fields" class="space-y-4 hidden">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อ -นามสกุล</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อ - นามสกุล</label>
                         <input type="text" id="auth-fullname" placeholder="สมชาย ยอดขาย" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
                     </div>
                     <div>
@@ -83,75 +84,95 @@
         </div>
     </div>
 
-    <!-- Container หลักของระบบ (ซ่อนไว้จนกว่าจะ Login สำเร็จ) -->
+    <!-- Main App Container -->
     <div id="main-app-container" class="flex h-screen overflow-hidden hidden">
         
-        <!-- Sidebar เมนูด้านข้าง -->
-        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-20">
-            <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
-                <div class="bg-white p-1 rounded-xl shadow-md w-12 h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img src="PAF LOGO (2).png" alt="PAF GLOBAL Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://placehold.co/100x100/ffffff/111111?text=PAF';">
+        <!-- Mobile Sidebar Overlay Backdrop -->
+        <div id="sidebar-backdrop" onclick="toggleSidebarMobile()" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
+
+        <!-- Sidebar -->
+        <aside id="app-sidebar" class="fixed md:static inset-y-0 left-0 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-30 transition-all duration-300 -translate-x-full md:translate-x-0">
+            <!-- Sidebar Header with Logo & Collapse Toggle -->
+            <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div class="bg-white p-1 rounded-xl shadow-md w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <img src="PAF LOGO (2).png" alt="PAF GLOBAL Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://placehold.co/100x100/ffffff/111111?text=PAF';">
+                    </div>
+                    <div class="sidebar-text-container truncate">
+                        <h1 class="font-bold text-white text-sm sm:text-base leading-tight truncate">PAF GLOBAL CRM</h1>
+                        <span class="text-[11px] text-slate-400 truncate block">ระบบจัดการงานขายดับเพลิง</span>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="font-bold text-white text-base leading-tight">PAF GLOBAL CRM</h1>
-                    <span class="text-xs text-slate-400">ระบบจัดการงานขายดับเพลิง</span>
-                </div>
+                <!-- Desktop Sidebar Collapse Button -->
+                <button onclick="toggleSidebarCollapse()" class="hidden md:flex text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-all flex-shrink-0" title="ย่อ / ขยายแถบเมนู">
+                    <i id="sidebar-collapse-icon" class="fa-solid fa-angles-left"></i>
+                </button>
+                <!-- Mobile Close Button -->
+                <button onclick="toggleSidebarMobile()" class="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-all flex-shrink-0">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
 
-            <!-- เมนูนำทาง -->
-            <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <!-- Navigation Links -->
+            <nav class="flex-1 p-3 sm:p-4 space-y-1.5 overflow-y-auto">
                 <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-fire-600 text-white font-medium text-sm shadow-sm transition-all">
-                    <i class="fa-solid fa-chart-pie w-5"></i>
-                    <span>ภาพรวม</span>
+                    <i class="fa-solid fa-chart-pie w-5 flex-shrink-0 text-center"></i>
+                    <span class="sidebar-text">ภาพรวม</span>
                 </button>
                 <button onclick="switchView('deals')" id="nav-deals" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
-                    <i class="fa-solid fa-handshake w-5"></i>
-                    <span>ติดตามงานขาย</span>
+                    <i class="fa-solid fa-handshake w-5 flex-shrink-0 text-center"></i>
+                    <span class="sidebar-text">ติดตามงานขาย</span>
                 </button>
                 <button onclick="switchView('maintenance')" id="nav-maintenance" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
-                    <i class="fa-solid fa-calendar-days w-5"></i>
-                    <span>ตารางนัดหมาย</span>
+                    <i class="fa-solid fa-calendar-days w-5 flex-shrink-0 text-center"></i>
+                    <span class="sidebar-text">ตารางนัดหมาย</span>
                 </button>
                 <button onclick="switchView('admin')" id="nav-admin" class="hidden w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-amber-400"></i>
-                    <span>จัดการผู้ใช้งานสำหรับ Admin</span>
+                    <i class="fa-solid fa-user-shield w-5 flex-shrink-0 text-center text-amber-400"></i>
+                    <span class="sidebar-text">จัดการผู้ใช้งานสำหรับ Admin</span>
                 </button>
             </nav>
 
-            <!-- ข้อมูลผู้ใช้งานระบบด้านล่าง Sidebar พร้อมปุ่มออกจากระบบ -->
-            <div class="p-4 border-t border-slate-800 bg-slate-950/55 flex items-center justify-between">
-                <div class="flex items-center space-x-3 truncate">
-                    <div id="user-avatar-initial" class="w-10 h-10 rounded-full bg-fire-500/20 text-fire-500 flex items-center justify-center font-bold flex-shrink-0">
+            <!-- User Info & Logout -->
+            <div class="p-3 sm:p-4 border-t border-slate-800 bg-slate-950/55 flex items-center justify-between">
+                <div class="flex items-center space-x-3 truncate sidebar-text-container">
+                    <div id="user-avatar-initial" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-fire-500/20 text-fire-500 flex items-center justify-center font-bold flex-shrink-0 text-sm">
                         สม
                     </div>
-                    <div class="truncate">
-                        <p id="user-display-name" class="text-sm font-semibold text-white truncate">สมชาย ยอดขาย</p>
-                        <p id="user-display-role" class="text-xs text-slate-400 truncate">พนักงานขาย (Sales)</p>
+                    <div class="truncate sidebar-user-details">
+                        <p id="user-display-name" class="text-xs sm:text-sm font-semibold text-white truncate">สมชาย ยอดขาย</p>
+                        <p id="user-display-role" class="text-[11px] text-slate-400 truncate">พนักงานขาย (Sales)</p>
                     </div>
                 </div>
-                <button onclick="logoutSystem()" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-all" title="ออกจากระบบ">
+                <button onclick="logoutSystem()" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-all flex-shrink-0" title="ออกจากระบบ">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
         </aside>
 
-        <!-- พื้นที่แสดงเนื้อหาหลัก (Main Content Area) -->
-        <main class="flex-1 flex flex-col overflow-hidden">
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden w-full">
             
-            <!-- Top Navigation Bar -->
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10 shadow-sm">
-                <!-- นำช่องค้นหาออกตามคำขอ -->
-                <div></div>
+            <!-- Top Navbar -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-10 shadow-sm flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <!-- Mobile Sidebar Toggle Button -->
+                    <button onclick="toggleSidebarMobile()" class="md:hidden text-gray-600 hover:text-fire-600 p-2 rounded-xl hover:bg-gray-100 transition-all" title="เปิดเมนู">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <!-- Desktop Sidebar Toggle Button -->
+                    <button onclick="toggleSidebarCollapse()" class="hidden md:flex text-gray-600 hover:text-fire-600 p-2 rounded-xl hover:bg-gray-100 transition-all" title="ย่อ / ขยายแถบเมนู">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                </div>
 
-                <!-- ขวาบน: แจ้งเตือนและปุ่มเพิ่มลูกค้า -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4">
                     <div class="relative">
                         <button onclick="toggleNotificationDropdown()" class="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 relative transition-all">
-                            <i class="fa-regular fa-bell text-lg"></i>
+                            <i class="fa-regular fa-bell text-base sm:text-lg"></i>
                             <span id="notification-badge" class="absolute top-2 right-2 w-2 h-2 bg-fire-600 rounded-full hidden"></span>
                         </button>
-                        <!-- Dropdown แจ้งเตือนกระดิ่ง -->
-                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50">
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50">
                             <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-100">
                                 <h3 class="font-bold text-sm text-gray-800">การแจ้งเตือนนัดหมาย</h3>
                                 <span class="text-xs bg-fire-100 text-fire-700 px-2 py-0.5 rounded-full font-semibold" id="notification-count-badge">0 รายการ</span>
@@ -162,63 +183,60 @@
                         </div>
                     </div>
 
-                    <button onclick="openCustomerModal()" class="bg-fire-600 hover:bg-fire-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm shadow-fire-600/30 flex items-center space-x-2 transition-all">
+                    <button onclick="openCustomerModal()" class="bg-fire-600 hover:bg-fire-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm shadow-fire-600/30 flex items-center space-x-2 transition-all">
                         <i class="fa-solid fa-plus"></i>
-                        <span>เพิ่มลูกค้าใหม่</span>
+                        <span class="hidden sm:inline">เพิ่มลูกค้าใหม่</span>
+                        <span class="sm:hidden">เพิ่ม</span>
                     </button>
                 </div>
             </header>
 
-            <!-- เนื้อหาภายในหน้าที่เปลี่ยนไปตามเมนู -->
-            <div class="flex-1 overflow-y-auto bg-gray-50 p-6">
+            <!-- Dynamic View Container -->
+            <div class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
 
-                <!-- 1. หน้า "ภาพรวม" (Dashboard) -->
+                <!-- 1. Dashboard View -->
                 <div id="view-dashboard" class="space-y-6">
-                    <!-- Header สรุปข้อมูลพนักงานขาย -->
-                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div class="flex items-center space-x-4">
-                            <div class="w-14 h-14 rounded-2xl bg-fire-500/10 text-fire-600 flex items-center justify-center text-2xl font-bold shadow-inner">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-fire-500/10 text-fire-600 flex items-center justify-center text-xl sm:text-2xl font-bold shadow-inner flex-shrink-0">
                                 <i class="fa-solid fa-user-tie"></i>
                             </div>
                             <div>
-                                <h2 id="dashboard-welcome-title" class="text-xl font-bold text-gray-800">ยินดีต้อนรับกลับ, คุณสมชาย ยอดขาย</h2>
-                                <p class="text-sm text-gray-500 flex items-center mt-0.5">
+                                <h2 id="dashboard-welcome-title" class="text-lg sm:text-xl font-bold text-gray-800 truncate">ยินดีต้อนรับกลับ, คุณสมชาย ยอดขาย</h2>
+                                <p class="text-xs sm:text-sm text-gray-500 flex items-center mt-0.5">
                                     <i class="fa-regular fa-calendar mr-2 text-fire-500"></i> วันนี้: <span id="current-date-display" class="font-medium text-gray-700 ml-1"></span>
                                 </p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-3 w-full md:w-auto">
-                            <div class="bg-blue-50 border border-blue-100 px-4 py-2.5 rounded-xl text-center flex-1 md:flex-initial">
-                                <span class="block text-xs text-blue-600 font-medium">นัดหมายวันนี้</span>
-                                <span id="stat-today-appointments" class="text-lg font-bold text-blue-700">0</span>
+                            <div class="bg-blue-50 border border-blue-100 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-center flex-1 md:flex-initial">
+                                <span class="block text-[11px] sm:text-xs text-blue-600 font-medium">นัดหมายวันนี้</span>
+                                <span id="stat-today-appointments" class="text-base sm:text-lg font-bold text-blue-700">0</span>
                             </div>
-                            <div class="bg-red-50 border border-red-100 px-4 py-2.5 rounded-xl text-center flex-1 md:flex-initial">
-                                <span class="block text-xs text-red-600 font-medium">เกินกำหนดนัด</span>
-                                <span id="stat-overdue-appointments" class="text-lg font-bold text-red-700">0</span>
+                            <div class="bg-red-50 border border-red-100 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-center flex-1 md:flex-initial">
+                                <span class="block text-[11px] sm:text-xs text-red-600 font-medium">เกินกำหนดนัด</span>
+                                <span id="stat-overdue-appointments" class="text-base sm:text-lg font-bold text-red-700">0</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- แจ้งเตือนติดตามนัดหมาย -->
-                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-800 flex items-center">
+                            <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center">
                                 <i class="fa-solid fa-bell text-fire-600 mr-2"></i> แจ้งเตือนติดตามนัดหมาย
                             </h3>
                             <span class="text-xs text-gray-400">อัปเดตแบบเรียลไทม์</span>
                         </div>
                         <div id="appointment-alerts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <!-- รายการแจ้งเตือนจะถูกแทรกที่นี่ -->
                             <div class="col-span-full py-8 text-center text-gray-400 text-sm">
                                 ไม่มีคิวติดตามนัดหมายในระบบขณะนี้
                             </div>
                         </div>
                     </div>
 
-                    <!-- แถบกิจกรรมล่าสุด (Recent Activities) อ้างอิงสถานะและแผนติดตาม -->
-                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-800 flex items-center">
+                            <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center">
                                 <i class="fa-solid fa-clock-rotate-left text-fire-600 mr-2"></i> กิจกรรมล่าสุด & แผนติดตาม
                             </h3>
                             <span class="text-xs text-gray-400">บันทึกการอัปเดตล่าสุด</span>
@@ -230,24 +248,23 @@
                         </div>
                     </div>
 
-                    <!-- ตารางรายชื่อลูกค้าล่าสุด -->
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h3 class="font-bold text-gray-800 flex items-center">
+                        <div class="p-5 sm:p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center">
                                 <i class="fa-solid fa-address-book text-fire-600 mr-2"></i> รายชื่อลูกค้าล่าสุด
                             </h3>
                             <span class="text-xs text-gray-400">ข้อมูลทั้งหมดในระบบ</span>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-sm">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
                                 <thead>
                                     <tr class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold text-xs">
-                                        <th class="p-4">บริษัท / ชื่อลูกค้า</th>
-                                        <th class="p-4">ผู้ติดต่อ</th>
-                                        <th class="p-4">เบอร์โทรศัพท์</th>
-                                        <th class="p-4">วันที่เพิ่มข้อมูล</th>
-                                        <th class="p-4">สถานะ</th>
-                                        <th class="p-4 text-center">จัดการ</th>
+                                        <th class="p-3 sm:p-4">บริษัท / ชื่อลูกค้า</th>
+                                        <th class="p-3 sm:p-4">ผู้ติดต่อ</th>
+                                        <th class="p-3 sm:p-4">เบอร์โทรศัพท์</th>
+                                        <th class="p-3 sm:p-4">วันที่เพิ่มข้อมูล</th>
+                                        <th class="p-3 sm:p-4">สถานะ</th>
+                                        <th class="p-3 sm:p-4 text-center">จัดการ</th>
                                     </tr>
                                 </thead>
                                 <tbody id="dashboard-customer-table" class="divide-y divide-gray-100 text-gray-700">
@@ -260,14 +277,13 @@
                     </div>
                 </div>
 
-                <!-- 2. หน้า "ติดตามงานขาย (Deals)" -->
+                <!-- 2. Deals View -->
                 <div id="view-deals" class="space-y-6 hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h2 class="text-xl font-bold text-gray-800">ติดตามงานขาย (Pipeline) & วิเคราะห์สถานะ</h2>
+                            <h2 class="text-lg sm:text-xl font-bold text-gray-800">ติดตามงานขาย (Pipeline) & วิเคราะห์สถานะ</h2>
                             <p class="text-xs text-gray-500 mt-0.5">จัดการและวิเคราะห์สถานะดีลของลูกค้าแต่ละราย</p>
                         </div>
-                        <!-- ตัวเลือกช่วงระยะเวลา วัน / เดือน / ปี -->
                         <div class="flex items-center space-x-2 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm">
                             <button onclick="changeDealFilter('day')" id="filter-day-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-fire-600 text-white transition-all">รายวัน</button>
                             <button onclick="changeDealFilter('month')" id="filter-month-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all">รายเดือน</button>
@@ -275,96 +291,81 @@
                         </div>
                     </div>
 
-                    <!-- Dashboard สรุปผลวิเคราะห์สถานะและเหตุผลการขาย -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                            <span class="text-xs text-gray-500 font-medium">ดีลทั้งหมดในช่วงเวลานี้</span>
-                            <h3 id="analytics-total-deals" class="text-2xl font-bold text-gray-800 mt-1">0</h3>
-                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-chart-pie mr-1"></i> อ้างอิงตามตัวกรองเวลา</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-[11px] sm:text-xs text-gray-500 font-medium">ดีลทั้งหมดในช่วงเวลานี้</span>
+                            <h3 id="analytics-total-deals" class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">0</h3>
                         </div>
-                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                            <span class="text-xs text-blue-600 font-medium">กำลังดำเนินการเสนอราคา</span>
-                            <h3 id="analytics-active-deals" class="text-2xl font-bold text-blue-700 mt-1">0</h3>
-                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-clock mr-1"></i> รอพิจารณา / เจรจา</p>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-[11px] sm:text-xs text-blue-600 font-medium">กำลังดำเนินการเสนอราคา</span>
+                            <h3 id="analytics-active-deals" class="text-xl sm:text-2xl font-bold text-blue-700 mt-1">0</h3>
                         </div>
-                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                            <span class="text-xs text-green-600 font-medium">อัตราปิดการขายสำเร็จ (Win Rate)</span>
-                            <h3 id="analytics-win-rate" class="text-2xl font-bold text-green-700 mt-1">0%</h3>
-                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-circle-check mr-1"></i> ปิดสำเร็จ / ทั้งหมด</p>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-[11px] sm:text-xs text-green-600 font-medium">อัตราปิดการขายสำเร็จ (Win Rate)</span>
+                            <h3 id="analytics-win-rate" class="text-xl sm:text-2xl font-bold text-green-700 mt-1">0%</h3>
                         </div>
-                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                            <span class="text-xs text-red-600 font-medium">ดีลที่ไม่สำเร็จ / ยกเลิก</span>
-                            <h3 id="analytics-lost-deals" class="text-2xl font-bold text-red-700 mt-1">0</h3>
-                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-circle-xmark mr-1"></i> เหตุผล: งบไม่ผ่าน/คู่แข่ง</p>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-[11px] sm:text-xs text-red-600 font-medium">ดีลที่ไม่สำเร็จ / ยกเลิก</span>
+                            <h3 id="analytics-lost-deals" class="text-xl sm:text-2xl font-bold text-red-700 mt-1">0</h3>
                         </div>
                     </div>
 
-                    <!-- Kanban Board -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-                        <!-- Column 1: ติดต่อใหม่ -->
                         <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
                             <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
                                 <span class="font-bold text-sm text-gray-700">ติดต่อใหม่ (New)</span>
                                 <span id="new-lead-count" class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-new-column" class="space-y-3 min-h-[300px]">
+                            <div id="kanban-new-column" class="space-y-3 min-h-[250px]">
                                 <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
                             </div>
                         </div>
-
-                        <!-- Column 2: เสนอราคา / รอพิจารณา -->
                         <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
                             <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
                                 <span class="font-bold text-sm text-blue-700">เสนอราคา / รอพิจารณา</span>
                                 <span id="quoted-count" class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-quoted-column" class="space-y-3 min-h-[300px]">
+                            <div id="kanban-quoted-column" class="space-y-3 min-h-[250px]">
                                 <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
                             </div>
                         </div>
-
-                        <!-- Column 3: เจรจา -->
                         <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
                             <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
                                 <span class="font-bold text-sm text-amber-700">เจรจา</span>
                                 <span id="nego-count" class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-nego-column" class="space-y-3 min-h-[300px]">
+                            <div id="kanban-nego-column" class="space-y-3 min-h-[250px]">
                                 <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
                             </div>
                         </div>
-
-                        <!-- Column 4: ปิดการขาย -->
                         <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
                             <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
                                 <span class="font-bold text-sm text-green-700">ปิดการขายสำเร็จ</span>
                                 <span id="won-count" class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-won-column" class="space-y-3 min-h-[300px]">
+                            <div id="kanban-won-column" class="space-y-3 min-h-[250px]">
                                 <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. หน้า "แจ้งเตือนซ่อมบำรุง" -->
+                <!-- 3. Calendar View -->
                 <div id="view-maintenance" class="space-y-6 hidden">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <div>
-                            <h2 class="text-xl font-bold text-gray-800">ปฏิทินตารางนัดหมาย (Appointment Calendar)</h2>
+                            <h2 class="text-lg sm:text-xl font-bold text-gray-800">ปฏิทินตารางนัดหมาย (Appointment Calendar)</h2>
                             <p class="text-xs text-gray-500 mt-0.5">ปฏิทินแสดงวันนัดหมายติดตามลูกค้า (แสดงบริษัท ผู้ติดต่อ และผู้รับผิดชอบ)</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm">
-                            <!-- คลิกเลือก วัน / เดือน / ปี โดยตรง -->
-                            <div class="flex items-center space-x-1.5 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200">
+                        <div class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-auto">
+                            <div class="flex items-center space-x-1.5 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200 flex-1 sm:flex-initial">
                                 <i class="fa-regular fa-calendar-check text-fire-600 text-xs"></i>
-                                <span class="text-xs text-gray-500 font-medium">เลือกวัน/เดือน/ปี:</span>
-                                <input type="date" id="calendar-jump-date" onchange="jumpToCalendarDate(this.value)" class="bg-transparent text-xs font-semibold text-gray-800 focus:outline-none cursor-pointer">
+                                <span class="text-xs text-gray-500 font-medium hidden sm:inline">เลือกวัน:</span>
+                                <input type="date" id="calendar-jump-date" onchange="jumpToCalendarDate(this.value)" class="bg-transparent text-xs font-semibold text-gray-800 focus:outline-none cursor-pointer w-full">
                             </div>
 
-                            <!-- เลือกเดือนและปีแบบ Dropdown -->
                             <div class="flex items-center space-x-1">
-                                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all" title="เดือนก่อนหน้า"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all flex-shrink-0" title="เดือนก่อนหน้า"><i class="fa-solid fa-chevron-left text-xs"></i></button>
                                 <select id="calendar-month-select" onchange="selectCalendarMonthYear()" class="px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-fire-500 cursor-pointer">
                                     <option value="0">มกราคม</option>
                                     <option value="1">กุมภาพันธ์</option>
@@ -380,9 +381,8 @@
                                     <option value="11">ธันวาคม</option>
                                 </select>
                                 <select id="calendar-year-select" onchange="selectCalendarMonthYear()" class="px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-fire-500 cursor-pointer">
-                                    <!-- ตัวเลือกปี พ.ศ. จะถูกสร้างผ่าน JavaScript -->
                                 </select>
-                                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all" title="เดือนถัดไป"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all flex-shrink-0" title="เดือนถัดไป"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                             </div>
 
                             <button onclick="goToTodayCalendar()" class="px-3 py-1.5 rounded-xl bg-fire-50 hover:bg-fire-100 text-fire-700 text-xs font-semibold transition-all">
@@ -391,66 +391,57 @@
                         </div>
                     </div>
 
-                    <!-- ส่วนแสดงปฏิทิน Grid -->
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <!-- หัววันในสัปดาห์ -->
-                        <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-200 text-center text-xs font-semibold text-gray-500 py-3">
-                            <div>อาทิตย์</div>
-                            <div>จันทร์</div>
-                            <div>อังคาร</div>
-                            <div>พุธ</div>
-                            <div>พฤหัสบดี</div>
-                            <div>ศุกร์</div>
-                            <div>เสาร์</div>
+                        <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-200 text-center text-[11px] sm:text-xs font-semibold text-gray-500 py-3">
+                            <div>อา</div>
+                            <div>จ</div>
+                            <div>อ</div>
+                            <div>พ</div>
+                            <div>พฤ</div>
+                            <div>ศ</div>
+                            <div>ส</div>
                         </div>
-                        <!-- ช่องตารางวันในเดือน -->
                         <div id="calendar-grid" class="grid grid-cols-7 auto-rows-fr bg-gray-200 gap-px">
-                            <!-- จะถูกสร้างผ่าน JavaScript -->
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. หน้า "จัดการผู้ใช้งานสำหรับ Admin" (เฉพาะ Admin เท่านั้น) -->
+                <!-- 4. Admin Management View -->
                 <div id="view-admin" class="space-y-6 hidden">
-                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
                                 <i class="fa-solid fa-user-shield"></i>
                             </div>
                             <div>
-                                <h2 class="text-xl font-bold text-gray-800">จัดการผู้ใช้งานและข้อมูลระบบ (Admin Panel)</h2>
+                                <h2 class="text-lg sm:text-xl font-bold text-gray-800">จัดการผู้ใช้งานและข้อมูลระบบ (Admin Panel)</h2>
                                 <p class="text-xs text-gray-500 mt-0.5">จัดการบัญชีผู้ใช้งานทั่วไป แก้ไขรหัสผ่าน และควบคุมเนื้อหาข้อมูลลูกค้าทั้งหมดในระบบ</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ส่วนที่ 1: ตารางจัดการผู้ใช้งานทั่วไป -->
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-3">
-                            <h3 class="font-bold text-gray-800 flex items-center">
+                        <div class="p-5 sm:p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-3">
+                            <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center">
                                 <i class="fa-solid fa-users-gear text-fire-600 mr-2"></i> รายชื่อผู้ใช้งานในระบบ
                             </h3>
                             <div class="flex items-center space-x-2">
                                 <button onclick="openCloudConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-1.5 transition-all">
                                     <i class="fa-solid fa-gear"></i>
-                                    <span>ตั้งค่า Cloud Sync (สำหรับ GitHub)</span>
+                                    <span>ตั้งค่า Cloud Sync</span>
                                 </button>
-                                <span id="cloud-sync-badge" class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    <span>ซิงค์ข้อมูลออนไลน์</span>
-                                </span>
                                 <span id="admin-user-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 บัญชี</span>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-sm">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
                                 <thead>
                                     <tr class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold text-xs">
-                                        <th class="p-4">ชื่อ - นามสกุล</th>
-                                        <th class="p-4">ชื่อผู้ใช้งาน / อีเมล์</th>
-                                        <th class="p-4">ตำแหน่ง / บทบาท</th>
-                                        <th class="p-4">รหัสผ่าน</th>
-                                        <th class="p-4 text-center">จัดการบัญชี</th>
+                                        <th class="p-3 sm:p-4">ชื่อ - นามสกุล</th>
+                                        <th class="p-3 sm:p-4">ชื่อผู้ใช้งาน / อีเมล์</th>
+                                        <th class="p-3 sm:p-4">ตำแหน่ง / บทบาท</th>
+                                        <th class="p-3 sm:p-4">รหัสผ่าน</th>
+                                        <th class="p-3 sm:p-4 text-center">จัดการบัญชี</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-users-table" class="divide-y divide-gray-100 text-gray-700">
@@ -459,24 +450,23 @@
                         </div>
                     </div>
 
-                    <!-- ส่วนที่ 2: ตารางจัดการเนื้อหาและข้อมูลลูกค้าทั้งหมด -->
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h3 class="font-bold text-gray-800 flex items-center">
+                        <div class="p-5 sm:p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center">
                                 <i class="fa-solid fa-database text-fire-600 mr-2"></i> จัดการเนื้อหาข้อมูลลูกค้าและงานขายทั้งหมด
                             </h3>
                             <span id="admin-content-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 รายการ</span>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-sm">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
                                 <thead>
                                     <tr class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold text-xs">
-                                        <th class="p-4">บริษัท / ชื่อลูกค้า</th>
-                                        <th class="p-4">ผู้ติดต่อ</th>
-                                        <th class="p-4">ผู้รับผิดชอบ (Owner)</th>
-                                        <th class="p-4">สถานะดีล</th>
-                                        <th class="p-4">นัดหมายถัดไป</th>
-                                        <th class="p-4 text-center">แก้ไข / ลบเนื้อหา</th>
+                                        <th class="p-3 sm:p-4">บริษัท / ชื่อลูกค้า</th>
+                                        <th class="p-3 sm:p-4">ผู้ติดต่อ</th>
+                                        <th class="p-3 sm:p-4">ผู้รับผิดชอบ (Owner)</th>
+                                        <th class="p-3 sm:p-4">สถานะดีล</th>
+                                        <th class="p-3 sm:p-4">นัดหมายถัดไป</th>
+                                        <th class="p-3 sm:p-4 text-center">แก้ไข / ลบเนื้อหา</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-content-table" class="divide-y divide-gray-100 text-gray-700">
@@ -490,7 +480,7 @@
         </main>
     </div>
 
-    <!-- Modal แก้ไขข้อมูลผู้ใช้งาน (สำหรับ Admin) -->
+    <!-- Edit User Modal -->
     <div id="edit-user-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeEditUserModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
@@ -533,28 +523,24 @@
         </div>
     </div>
 
-    <!-- Modal ฟอร์มเพิ่ม/แก้ไขลูกค้า (Slide-over) -->
+    <!-- Customer Form Modal -->
     <div id="customer-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeCustomerModal()"></div>
-        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
             <div class="w-screen max-w-2xl bg-white shadow-2xl flex flex-col">
-                <!-- Header Modal -->
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                    <h3 id="modal-title" class="font-bold text-lg text-gray-800 flex items-center">
+                <div class="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <h3 id="modal-title" class="font-bold text-base sm:text-lg text-gray-800 flex items-center truncate">
                         <i class="fa-solid fa-user-plus text-fire-600 mr-2"></i> เพิ่มข้อมูลลูกค้าใหม่
                     </h3>
-                    <button onclick="closeCustomerModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all">
+                    <button onclick="closeCustomerModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all flex-shrink-0">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <!-- ฟอร์มกรอกข้อมูล 6 หมวด -->
-                <div class="flex-1 overflow-y-auto p-6">
+                <div class="flex-1 overflow-y-auto p-5 sm:p-6">
                     <form id="new-customer-form" class="space-y-8">
-                        
-                        <!-- 1. ข้อมูลการติดต่อ -->
                         <div class="space-y-4">
-                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">1. ข้อมูลการติดต่อ</h4>
+                            <h4 class="text-xs sm:text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">1. ข้อมูลการติดต่อ</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">บริษัท/ชื่อลูกค้า *</label>
@@ -587,9 +573,8 @@
                             </div>
                         </div>
 
-                        <!-- 2. ที่อยู่สำนักงาน -->
                         <div class="space-y-4">
-                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">2. ที่อยู่สำนักงาน</h4>
+                            <h4 class="text-xs sm:text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">2. ที่อยู่สำนักงาน</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="md:col-span-2">
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">ที่อยู่/เลขที่/ถนน</label>
@@ -614,9 +599,8 @@
                             </div>
                         </div>
 
-                        <!-- 3. ประเภทธุรกิจ -->
                         <div class="space-y-4">
-                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">3. ประเภทธุรกิจ</h4>
+                            <h4 class="text-xs sm:text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">3. ประเภทธุรกิจ</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">กลุ่มธุรกิจ</label>
@@ -642,9 +626,8 @@
                             </div>
                         </div>
 
-                        <!-- 4. ที่มาและความต้องการ -->
                         <div class="space-y-4">
-                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">4. ที่มาและความต้องการ</h4>
+                            <h4 class="text-xs sm:text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">4. ที่มาและความต้องการ</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">ลูกค้าจะนำไปใช้ที่ไหน/งานที่ต้องการ</label>
@@ -673,9 +656,9 @@
                             </div>
                         </div>
 
-                        <!-- 5. สถานะและแผนติดตาม -->
+                        <!-- 5. Status and Planning -->
                         <div class="space-y-4">
-                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">5. สถานะและแผนติดตาม</h4>
+                            <h4 class="text-xs sm:text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">5. สถานะและแผนติดตาม</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">สถานะดีล (Deal Stage) *</label>
@@ -712,9 +695,9 @@
                             </div>
                         </div>
 
-                        <!-- 6. ประเมินความสนใจของลูกค้า -->
+                        <!-- 6. Interest Evaluation -->
                         <div class="space-y-4">
-                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">6. ประเมินความสนใจของลูกค้า</h4>
+                            <h4 class="text-xs sm:text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">6. ประเมินความสนใจของลูกค้า</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">ระดับความสนใจ</label>
@@ -733,12 +716,11 @@
                     </form>
                 </div>
 
-                <!-- Footer Modal -->
-                <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
-                    <button type="button" onclick="closeCustomerModal()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-all">
+                <div class="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" onclick="closeCustomerModal()" class="px-4 sm:px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs sm:text-sm font-semibold hover:bg-gray-100 transition-all">
                         ยกเลิก
                     </button>
-                    <button type="button" onclick="submitCustomerForm()" class="px-6 py-2.5 rounded-xl bg-fire-600 hover:bg-fire-700 text-white text-sm font-semibold shadow-sm shadow-fire-600/30 transition-all">
+                    <button type="button" onclick="submitCustomerForm()" class="px-5 sm:px-6 py-2.5 rounded-xl bg-fire-600 hover:bg-fire-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-fire-600/30 transition-all">
                         บันทึกข้อมูลลูกค้า
                     </button>
                 </div>
@@ -746,32 +728,32 @@
         </div>
     </div>
 
-    <!-- Modal แสดงรายละเอียดนัดหมายในปฏิทิน -->
+    <!-- Appointment Detail Modal -->
     <div id="appointment-detail-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeAppointmentDetailModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden">
-                <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                    <h3 class="font-bold text-base text-gray-800 flex items-center">
+                <div class="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center truncate">
                         <i class="fa-regular fa-calendar-check text-fire-600 mr-2"></i> รายละเอียดนัดหมายวันที่ <span id="modal-appt-date" class="ml-1 text-fire-600"></span>
                     </h3>
-                    <button onclick="closeAppointmentDetailModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all">
+                    <button onclick="closeAppointmentDetailModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all flex-shrink-0">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div id="modal-appt-list" class="p-6 overflow-y-auto space-y-4">
+                <div id="modal-appt-list" class="p-4 sm:p-6 overflow-y-auto space-y-4">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal ตั้งค่า Cloud Sync (Firebase Config) สำหรับใช้งานบน GitHub / Hosting ภายนอก -->
+    <!-- Cloud Config Modal -->
     <div id="cloud-config-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeCloudConfigModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 pointer-events-auto">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                    <h3 class="font-bold text-base text-gray-800 flex items-center">
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800 flex items-center">
                         <i class="fa-solid fa-cloud text-fire-600 mr-2"></i> ตั้งค่าเชื่อมต่อฐานข้อมูลกลาง (Cloud Sync)
                     </h3>
                     <button onclick="closeCloudConfigModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center">
@@ -779,12 +761,12 @@
                     </button>
                 </div>
                 <p class="text-xs text-gray-600 leading-relaxed">
-                    เมื่อนำระบบขึ้นใช้งานบน <b>GitHub Pages</b> หากต้องการให้พนักงานทุกคนในองค์กรซิงค์ข้อมูลร่วมกันข้ามเครื่อง สามารถนำค่า <b>Firebase Config (JSON)</b> จากโปรเจกต์ Firebase ของคุณมาวางด้านล่างนี้ได้ทันที (หากยังไม่ตั้งค่า ระบบจะทำงานในโหมดจัดเก็บข้อมูลบนอุปกรณ์อัตโนมัติ)
+                    ระบบใช้ Firebase Config ที่ตั้งค่าไว้โดยอัตโนมัติ คุณสามารถตรวจสอบหรือปรับเปลี่ยนได้ที่นี่
                 </p>
                 <form onsubmit="saveCloudConfig(event)" class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Firebase Config (JSON Object)</label>
-                        <textarea id="cloud-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", "storageBucket": "...", "messagingSenderId": "...", "appId": "..."}' class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fire-500"></textarea>
+                        <textarea id="cloud-config-input" rows="6" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fire-500"></textarea>
                     </div>
                     <div class="flex justify-between items-center pt-2">
                         <button type="button" onclick="clearCloudConfig()" class="px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 text-xs font-semibold">ล้างค่าเชื่อมต่อ</button>
@@ -798,19 +780,19 @@
         </div>
     </div>
 
-    <!-- JavaScript สำหรับควบคุมระบบ CRM, Cloud Sync และ Authentication -->
+    <!-- Application Script with Firebase Integration -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
-        // หน่วยความจำหลักของระบบ
         let customerRecordsList = [];
         let editingIndex = null;
         let currentCalendarDate = new Date();
         let selectedCalendarDate = null;
         let currentDealPeriodFilter = 'day';
         let currentAuthMode = 'login';
+        let isSidebarCollapsed = false;
 
         const defaultAdminAccount = {
             id: 'admin',
@@ -823,18 +805,23 @@
         let registeredUsers = [defaultAdminAccount];
         let currentUser = null;
 
-        // ตรวจสอบการตั้งค่าฐานข้อมูลออนไลน์ (รองรับทั้งใน Environment และบน GitHub Pages)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paf-global-crm';
+        const appId = 'paf-global-crm';
         const savedCustomConfigStr = localStorage.getItem('paf_custom_firebase_config');
-        let firebaseConfig = null;
-        if (typeof __firebase_config !== 'undefined') {
-            firebaseConfig = JSON.parse(__firebase_config);
-        } else if (savedCustomConfigStr) {
+        
+        let firebaseConfig = {
+            apiKey: "AIzaSyCMKg4O0fmpe-mBickEhzJaN-7VJKaALMg",
+            authDomain: "paf-global-crm.firebaseapp.com",
+            projectId: "paf-global-crm",
+            storageBucket: "paf-global-crm.firebasestorage.app",
+            messagingSenderId: "740569132860",
+            appId: "1:740569132860:web:dd27a85f1f47acffbc7839",
+            measurementId: "G-2RPTNS9F51"
+        };
+
+        if (savedCustomConfigStr) {
             try {
                 firebaseConfig = JSON.parse(savedCustomConfigStr);
-            } catch (e) {
-                firebaseConfig = null;
-            }
+            } catch (e) {}
         }
 
         let db = null;
@@ -858,11 +845,6 @@
                 customerRecordsList = localCustomers;
             }
 
-            const badge = document.getElementById('cloud-sync-badge');
-            if (badge) {
-                badge.className = 'text-xs bg-amber-50 text-amber-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1';
-                badge.innerHTML = '<i class="fa-solid fa-hard-drive"></i><span>โหมดจัดเก็บในเครื่อง (Local)</span>';
-            }
             refreshAllViews();
         }
 
@@ -872,34 +854,18 @@
         }
 
         async function initCloudSync() {
-            // โหลดข้อมูลในเครื่องก่อนเสมอเพื่อให้เข้าใช้งานได้ทันทีแม้ยังไม่ได้ตั้งค่า Cloud
             loadLocalFallbackData();
-
-            if (!firebaseConfig) {
-                return;
-            }
 
             try {
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
 
                 if (!auth.currentUser) return;
                 isCloudReady = true;
 
-                const badge = document.getElementById('cloud-sync-badge');
-                if (badge) {
-                    badge.className = 'text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1';
-                    badge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>ซิงค์ข้อมูลออนไลน์ (Cloud)</span>';
-                }
-
-                // 1. ซิงค์ข้อมูลผู้ใช้งานทั้งหมดในองค์กร (Public Data)
                 const usersCol = collection(db, 'artifacts', appId, 'public', 'data', 'crm_users');
                 onSnapshot(usersCol, (snapshot) => {
                     const loadedUsers = [];
@@ -924,11 +890,8 @@
                     }
 
                     renderAdminPanel();
-                }, (error) => {
-                    console.error('Users sync error:', error);
                 });
 
-                // 2. ซิงค์ข้อมูลลูกค้าและงานขายทั้งหมดในองค์กร (Public Data)
                 const customersCol = collection(db, 'artifacts', appId, 'public', 'data', 'crm_customers');
                 onSnapshot(customersCol, (snapshot) => {
                     const loadedCustomers = [];
@@ -940,8 +903,6 @@
                     customerRecordsList = loadedCustomers;
                     saveLocalFallbackData();
                     refreshAllViews();
-                }, (error) => {
-                    console.error('Customers sync error:', error);
                 });
 
             } catch (err) {
@@ -950,10 +911,44 @@
             }
         }
 
+        window.toggleSidebarCollapse = function() {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            const sidebar = document.getElementById('app-sidebar');
+            const collapseIcon = document.getElementById('sidebar-collapse-icon');
+            const textElements = document.querySelectorAll('.sidebar-text, .sidebar-text-container');
+
+            if (isSidebarCollapsed) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                if (collapseIcon) {
+                    collapseIcon.classList.remove('fa-angles-left');
+                    collapseIcon.classList.add('fa-angles-right');
+                }
+                textElements.forEach(el => el.classList.add('hidden'));
+            } else {
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                if (collapseIcon) {
+                    collapseIcon.classList.remove('fa-angles-right');
+                    collapseIcon.classList.add('fa-angles-left');
+                }
+                textElements.forEach(el => el.classList.remove('hidden'));
+            }
+        };
+
+        window.toggleSidebarMobile = function() {
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar && backdrop) {
+                sidebar.classList.toggle('-translate-x-full');
+                backdrop.classList.toggle('hidden');
+            }
+        };
+
         window.openCloudConfigModal = function() {
             const input = document.getElementById('cloud-config-input');
             if (input) {
-                input.value = localStorage.getItem('paf_custom_firebase_config') || '';
+                input.value = JSON.stringify(firebaseConfig, null, 2);
             }
             document.getElementById('cloud-config-modal').classList.remove('hidden');
         };
@@ -965,27 +960,19 @@
         window.saveCloudConfig = function(event) {
             event.preventDefault();
             const raw = document.getElementById('cloud-config-input').value.trim();
-            if (!raw) {
-                showToast('กรุณาวางโค้ด Firebase Config', 'bg-red-600');
-                return;
-            }
             try {
                 const parsed = JSON.parse(raw);
-                if (!parsed.apiKey || !parsed.projectId) {
-                    showToast('รูปแบบ Config ไม่ถูกต้อง ต้องมี apiKey และ projectId', 'bg-red-600');
-                    return;
-                }
                 localStorage.setItem('paf_custom_firebase_config', JSON.stringify(parsed));
                 showToast('บันทึกการตั้งค่า Cloud สำเร็จ กำลังรีโหลดระบบ...', 'bg-green-600');
                 setTimeout(() => window.location.reload(), 1000);
             } catch (e) {
-                showToast('รูปแบบ JSON ไม่ถูกต้อง กรุณาตรวจสอบเครื่องหมายปีกกาและเครื่องหมายคำพูด', 'bg-red-600');
+                showToast('รูปแบบ JSON ไม่ถูกต้อง กรุณาตรวจสอบ', 'bg-red-600');
             }
         };
 
         window.clearCloudConfig = function() {
             localStorage.removeItem('paf_custom_firebase_config');
-            showToast('ล้างค่า Cloud Config เรียบร้อยแล้ว กำลังรีโหลด...', 'bg-slate-800');
+            showToast('ล้างค่า Cloud Config เรียบร้อย กำลังรีโหลด...', 'bg-slate-800');
             setTimeout(() => window.location.reload(), 1000);
         };
 
@@ -993,7 +980,6 @@
             return str.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
         }
 
-        // ระบบ Authentication (Login / Register / Forgot Password)
         window.switchAuthTab = function(mode) {
             currentAuthMode = mode;
             const loginBtn = document.getElementById('tab-login-btn');
@@ -1076,7 +1062,6 @@
                     completeLogin(newUser);
                     showToast('สมัครสมาชิกและเข้าสู่ระบบเรียบร้อยแล้ว', 'bg-green-600');
                 } catch (err) {
-                    console.error('Register error:', err);
                     registeredUsers.push(newUser);
                     saveLocalFallbackData();
                     completeLogin(newUser);
@@ -1110,7 +1095,6 @@
                     switchAuthTab('login');
                     document.getElementById('auth-password').value = '';
                 } catch (err) {
-                    console.error('Reset password error:', err);
                     foundUser.password = password;
                     saveLocalFallbackData();
                     showToast('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', 'bg-green-600');
@@ -1160,12 +1144,18 @@
             }
         }
 
-        // การสลับหน้าเมนูหลัก
         window.switchView = function(viewName) {
             const isAdmin = currentUser && (currentUser.role === 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' || currentUser.email.toLowerCase() === 'admin');
             if (viewName === 'admin' && !isAdmin) {
                 showToast('คุณไม่มีสิทธิ์เข้าถึงเมนูสำหรับผู้ดูแลระบบ', 'bg-red-600');
                 return;
+            }
+
+            // Close mobile sidebar if open
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar && !sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) {
+                toggleSidebarMobile();
             }
 
             const views = ['dashboard', 'deals', 'maintenance', 'admin'];
@@ -1199,7 +1189,6 @@
             }
         };
 
-        // ฟังก์ชันสำหรับหน้า Admin Management
         window.renderAdminPanel = function() {
             const usersTbody = document.getElementById('admin-users-table');
             const contentTbody = document.getElementById('admin-content-table');
@@ -1215,15 +1204,15 @@
                     const isCoreAdmin = (u.email || '').toLowerCase() === 'admin';
                     usersHtml += `
                         <tr class="hover:bg-gray-50 transition-all">
-                            <td class="p-4 font-semibold text-gray-800">${u.fullname}</td>
-                            <td class="p-4 text-gray-600">${u.email}</td>
-                            <td class="p-4">
+                            <td class="p-3 sm:p-4 font-semibold text-gray-800">${u.fullname}</td>
+                            <td class="p-3 sm:p-4 text-gray-600">${u.email}</td>
+                            <td class="p-3 sm:p-4">
                                 <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isCoreAdmin || (u.role || '').includes('Admin') ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}">
                                     ${u.role}
                                 </span>
                             </td>
-                            <td class="p-4 text-gray-500 font-mono text-xs">${u.password}</td>
-                            <td class="p-4 text-center space-x-2">
+                            <td class="p-3 sm:p-4 text-gray-500 font-mono text-xs">${u.password}</td>
+                            <td class="p-3 sm:p-4 text-center space-x-2">
                                 <button onclick="openEditUserModal(${idx})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไขผู้ใช้งาน">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
@@ -1246,12 +1235,12 @@
                     customerRecordsList.forEach((cust, index) => {
                         contentHtml += `
                             <tr class="hover:bg-gray-50 transition-all">
-                                <td class="p-4 font-semibold text-gray-800">${cust.companyName}</td>
-                                <td class="p-4 text-gray-600">${cust.contactName} (${cust.contactPhone})</td>
-                                <td class="p-4 text-gray-600">${cust.owner}</td>
-                                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fire-50 text-fire-700">${cust.dealStage}</span></td>
-                                <td class="p-4 text-gray-500">${cust.nextAppt || '-'}</td>
-                                <td class="p-4 text-center space-x-2">
+                                <td class="p-3 sm:p-4 font-semibold text-gray-800">${cust.companyName}</td>
+                                <td class="p-3 sm:p-4 text-gray-600">${cust.contactName} (${cust.contactPhone})</td>
+                                <td class="p-3 sm:p-4 text-gray-600">${cust.owner}</td>
+                                <td class="p-3 sm:p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fire-50 text-fire-700">${cust.dealStage}</span></td>
+                                <td class="p-3 sm:p-4 text-gray-500">${cust.nextAppt || '-'}</td>
+                                <td class="p-3 sm:p-4 text-center space-x-2">
                                     <button onclick="openCustomerModal(${index})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไขข้อมูล"><i class="fa-solid fa-pen-to-square"></i></button>
                                     <button onclick="deleteCustomer(${index})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบข้อมูล"><i class="fa-solid fa-trash"></i></button>
                                 </td>
@@ -1307,12 +1296,6 @@
                 return;
             }
 
-            const duplicate = registeredUsers.some((u, idx) => idx !== index && (u.email || '').toLowerCase() === newEmail);
-            if (duplicate) {
-                showToast('ชื่อผู้ใช้งานหรืออีเมล์นี้ซ้ำกับบัญชีอื่นในระบบ', 'bg-red-600');
-                return;
-            }
-
             const isCoreAdmin = (user.email || '').toLowerCase() === 'admin';
             const updatedData = {
                 fullname: newFullname,
@@ -1336,7 +1319,6 @@
                 closeEditUserModal();
                 showToast('บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว', 'bg-green-600');
             } catch (err) {
-                console.error('Update user error:', err);
                 showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้งาน', 'bg-red-600');
             }
         };
@@ -1360,7 +1342,6 @@
                 }
                 showToast(`ลบบัญชีผู้ใช้งาน "${target.fullname}" เรียบร้อยแล้ว`, 'bg-slate-800');
             } catch (err) {
-                console.error('Delete user error:', err);
                 showToast('ไม่สามารถลบบัญชีผู้ใช้งานได้', 'bg-red-600');
             }
         };
@@ -1370,7 +1351,6 @@
             if (dropdown) dropdown.classList.toggle('hidden');
         };
 
-        // จัดการ Modal เพิ่ม/แก้ไขลูกค้า
         window.openCustomerModal = function(index = null) {
             const modal = document.getElementById('customer-modal');
             const form = document.getElementById('new-customer-form');
@@ -1508,7 +1488,6 @@
                 showToast(isEditing ? 'อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว' : 'บันทึกข้อมูลลูกค้าใหม่เรียบร้อยแล้ว', 'bg-green-600');
                 closeCustomerModal();
             } catch (err) {
-                console.error('Save customer error:', err);
                 showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลลูกค้า', 'bg-red-600');
             }
         };
@@ -1526,7 +1505,6 @@
                 }
                 showToast(`ลบข้อมูล "${target.companyName}" เรียบร้อยแล้ว`, 'bg-slate-800');
             } catch (err) {
-                console.error('Delete customer error:', err);
                 showToast('เกิดข้อผิดพลาดในการลบข้อมูลลูกค้า', 'bg-red-600');
             }
         };
@@ -1555,14 +1533,6 @@
             renderAdminPanel();
         }
 
-        // ซิงค์ข้อมูลอัตโนมัติทันทีเมื่อมีการสมัครสมาชิกหรือเพิ่มข้อมูลในแท็บอื่น
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'firesafe_users' || event.key === 'firesafe_customers') {
-                loadLocalFallbackData();
-            }
-        });
-
-        // ฟังก์ชันจัดการปฏิทินตารางนัดหมาย (Appointment Calendar)
         window.changeCalendarMonth = function(delta) {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
             renderCalendar();
@@ -1623,12 +1593,10 @@
 
             let html = '';
 
-            // ช่องว่างก่อนวันที่ 1 ของเดือน
             for (let i = 0; i < firstDayOfMonth; i++) {
-                html += `<div class="bg-gray-50/60 min-h-[135px] p-2"></div>`;
+                html += `<div class="bg-gray-50/65 min-h-[110px] sm:min-h-[135px] p-1.5 sm:p-2"></div>`;
             }
 
-            // วนลูปสร้างแต่ละวันในเดือน
             for (let day = 1; day <= daysInMonth; day++) {
                 const monthStr = String(month + 1).padStart(2, '0');
                 const dayStr = String(day).padStart(2, '0');
@@ -1639,16 +1607,15 @@
                 const isSelected = dateStr === selectedCalendarDate;
 
                 const todayBadgeClass = isToday
-                    ? 'bg-fire-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-sm'
+                    ? 'bg-fire-600 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold shadow-sm'
                     : 'text-gray-700 font-semibold';
 
                 let apptsHtml = '';
                 apptsOnThisDay.forEach(cust => {
                     apptsHtml += `
-                        <div onclick="openAppointmentDetail('${dateStr}')" class="p-1.5 rounded-lg bg-fire-50 hover:bg-fire-100 border border-fire-200 cursor-pointer transition-all text-left">
-                            <p class="text-[11px] font-bold text-fire-800 truncate">${cust.companyName}</p>
-                            <p class="text-[10px] text-gray-600 truncate"><i class="fa-solid fa-user text-[9px] mr-1"></i>${cust.contactName}</p>
-                            <p class="text-[10px] text-slate-500 truncate"><i class="fa-solid fa-user-tie text-[9px] mr-1"></i>${cust.owner}</p>
+                        <div onclick="openAppointmentDetail('${dateStr}')" class="p-1 rounded-lg sm:p-1.5 bg-fire-50 hover:bg-fire-100 border border-fire-200 cursor-pointer transition-all text-left">
+                            <p class="text-[10px] sm:text-[11px] font-bold text-fire-800 truncate">${cust.companyName}</p>
+                            <p class="text-[9px] sm:text-[10px] text-gray-600 truncate"><i class="fa-solid fa-user text-[8px] mr-1"></i>${cust.contactName}</p>
                         </div>
                     `;
                 });
@@ -1658,12 +1625,12 @@
                     : (isToday ? 'ring-2 ring-fire-500/50 bg-fire-50/20' : '');
 
                 html += `
-                    <div class="bg-white min-h-[135px] p-2 flex flex-col justify-between hover:bg-gray-50/80 transition-all ${cellHighlightClass}">
+                    <div class="bg-white min-h-[110px] sm:min-h-[135px] p-1.5 sm:p-2 flex flex-col justify-between hover:bg-gray-50/85 transition-all ${cellHighlightClass}">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs ${todayBadgeClass}">${day}</span>
-                            ${apptsOnThisDay.length > 0 ? `<span class="text-[10px] bg-fire-600 text-white px-1.5 py-0.5 rounded-full font-bold">${apptsOnThisDay.length} นัด</span>` : ''}
+                            <span class="text-[11px] sm:text-xs ${todayBadgeClass}">${day}</span>
+                            ${apptsOnThisDay.length > 0 ? `<span class="text-[9px] sm:text-[10px] bg-fire-600 text-white px-1 py-0.5 rounded-full font-bold">${apptsOnThisDay.length} นัด</span>` : ''}
                         </div>
-                        <div class="flex-1 mt-1.5 space-y-1.5 overflow-y-auto max-h-[105px]">
+                        <div class="flex-1 mt-1 space-y-1 overflow-y-auto max-h-[85px] sm:max-h-[105px]">
                             ${apptsHtml}
                         </div>
                     </div>
@@ -1684,11 +1651,10 @@
             let html = '';
             appts.forEach((cust) => {
                 html += `
-                    <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-4">
-                        <!-- หัวข้อ: ข้อมูลการติดต่อ -->
+                    <div class="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-4">
                         <div>
                             <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">1. ข้อมูลการติดต่อ</h4>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                                 <div><span class="text-gray-400">บริษัท/ลูกค้า:</span> <span class="font-semibold text-gray-800">${cust.companyName || '-'}</span></div>
                                 <div><span class="text-gray-400">ผู้ติดต่อ:</span> <span class="font-semibold text-gray-800">${cust.contactName || '-'} (${cust.contactPhone || '-'})</span></div>
                                 <div><span class="text-gray-400">อีเมล์:</span> <span class="text-gray-700">${cust.email || '-'}</span></div>
@@ -1698,16 +1664,14 @@
                             </div>
                         </div>
 
-                        <!-- หัวข้อ: ที่อยู่สำนักงาน -->
                         <div>
                             <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">2. ที่อยู่สำนักงาน</h4>
                             <p class="text-xs text-gray-700">${cust.address || '-'} ต.${cust.subdistrict || '-'} อ.${cust.district || '-'} จ.${cust.province || '-'} ${cust.zipcode || '-'}</p>
                         </div>
 
-                        <!-- หัวข้อ: ประเภทธุรกิจ -->
                         <div>
                             <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">3. ประเภทธุรกิจ</h4>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                                 <div><span class="text-gray-400">กลุ่มธุรกิจ:</span> <span class="text-gray-700">${cust.bizGroup || '-'}</span></div>
                                 <div><span class="text-gray-400">ทำธุรกิจอะไร:</span> <span class="text-gray-700">${cust.bizType || '-'}</span></div>
                                 <div><span class="text-gray-400">ขนาดธุรกิจ:</span> <span class="text-gray-700">${cust.bizSize || '-'}</span></div>
@@ -1715,12 +1679,11 @@
                             </div>
                         </div>
 
-                        <!-- หัวข้อ: ที่มาและความต้องการ -->
                         <div>
                             <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">4. ที่มาและความต้องการ</h4>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div class="col-span-2"><span class="text-gray-400">สถานที่ใช้งาน/งาน:</span> <span class="text-gray-700">${cust.usagePlace || '-'}</span></div>
-                                <div class="col-span-2"><span class="text-gray-400">รายละเอียดความต้องการ:</span> <span class="text-gray-700">${cust.details || '-'}</span></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="sm:col-span-2"><span class="text-gray-400">สถานที่ใช้งาน/งาน:</span> <span class="text-gray-700">${cust.usagePlace || '-'}</span></div>
+                                <div class="sm:col-span-2"><span class="text-gray-400">รายละเอียดความต้องการ:</span> <span class="text-gray-700">${cust.details || '-'}</span></div>
                                 <div><span class="text-gray-400">ช่องทางที่รู้จัก:</span> <span class="text-gray-700">${cust.channel || '-'}</span></div>
                                 <div><span class="text-gray-400">ผู้แนะนำ:</span> <span class="text-gray-700">${cust.referrer || '-'}</span></div>
                                 <div><span class="text-gray-400">สินค้าที่สนใจ:</span> <span class="text-gray-700">${cust.productInterest || '-'}</span></div>
@@ -1728,19 +1691,17 @@
                             </div>
                         </div>
 
-                        <!-- หัวข้อ: สถานะและแผนติดตาม -->
                         <div>
                             <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">5. สถานะและแผนติดตาม</h4>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                                 <div><span class="text-gray-400">สถานะ:</span> <span class="font-semibold text-fire-600">${cust.dealStage || '-'}</span></div>
                                 <div><span class="text-gray-400">ความสำคัญ:</span> <span class="text-gray-700">${cust.priority || '-'}</span></div>
                                 <div><span class="text-gray-400">ผู้รับผิดชอบ:</span> <span class="text-gray-700">${cust.owner || '-'}</span></div>
                                 <div><span class="text-gray-400">นัดหมายถัดไป:</span> <span class="font-semibold text-blue-600">${cust.nextAppt || '-'}</span></div>
-                                <div class="col-span-2"><span class="text-gray-400">เป้าหมายต่อไป:</span> <span class="text-gray-700">${cust.nextGoal || '-'}</span></div>
+                                <div class="sm:col-span-2"><span class="text-gray-400">เป้าหมายต่อไป:</span> <span class="text-gray-700">${cust.nextGoal || '-'}</span></div>
                             </div>
                         </div>
 
-                        <!-- หัวข้อ: ประเมินความสนใจ -->
                         <div>
                             <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">6. ประเมินความสนใจของลูกค้า</h4>
                             <div class="grid grid-cols-1 gap-2 text-xs">
@@ -1797,53 +1758,14 @@
             customerRecordsList.forEach((cust, index) => {
                 html += `
                     <tr class="hover:bg-gray-50 transition-all">
-                        <td class="p-4 font-semibold text-gray-800">${cust.companyName}</td>
-                        <td class="p-4">${cust.contactName}</td>
-                        <td class="p-4">${cust.contactPhone}</td>
-                        <td class="p-4 text-gray-500">${cust.dateAdded}</td>
-                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fire-50 text-fire-700">${cust.dealStage}</span></td>
-                        <td class="p-4 text-center space-x-2">
+                        <td class="p-3 sm:p-4 font-semibold text-gray-800">${cust.companyName}</td>
+                        <td class="p-3 sm:p-4">${cust.contactName}</td>
+                        <td class="p-3 sm:p-4">${cust.contactPhone}</td>
+                        <td class="p-3 sm:p-4 text-gray-500">${cust.dateAdded}</td>
+                        <td class="p-3 sm:p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fire-50 text-fire-700">${cust.dealStage}</span></td>
+                        <td class="p-3 sm:p-4 text-center space-x-2">
                             <button onclick="openCustomerModal(${index})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="deleteCustomer(${index})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบ"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function renderAppointmentTable() {
-            const tbody = document.getElementById('appointment-table-body');
-            if (!tbody) return;
-
-            if (customerRecordsList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400">ยังไม่มีรายการนัดหมายในระบบ</td></tr>`;
-                return;
-            }
-
-            // เรียงลำดับตามวันที่นัดหมายครั้งต่อไป (จากใกล้ไปไกล)
-            const sortedList = [...customerRecordsList].sort((a, b) => new Date(a.nextAppt) - new Date(b.nextAppt));
-
-            let html = '';
-            sortedList.forEach((cust) => {
-                const originalIndex = customerRecordsList.indexOf(cust);
-                const todayStr = new Date().toISOString().split('T')[0];
-                const isOverdue = cust.nextAppt < todayStr;
-                const isToday = cust.nextAppt === todayStr;
-                const badgeStyle = isOverdue ? 'bg-red-100 text-red-700' : (isToday ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
-
-                html += `
-                    <tr class="hover:bg-gray-50 transition-all">
-                        <td class="p-4 font-semibold text-gray-800">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeStyle}">${cust.nextAppt || '-'}</span>
-                        </td>
-                        <td class="p-4 font-medium text-gray-800">${cust.companyName}</td>
-                        <td class="p-4 text-gray-600">${cust.contactName} (${cust.contactPhone})</td>
-                        <td class="p-4 text-gray-600">${cust.nextGoal || '-'}</td>
-                        <td class="p-4 text-gray-600"><i class="fa-solid fa-user-tie text-fire-600 mr-1"></i>${cust.owner}</td>
-                        <td class="p-4 text-center space-x-2">
-                            <button onclick="openCustomerModal(${originalIndex})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteCustomer(${originalIndex})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบ"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -2028,10 +1950,8 @@
             const dateInput = document.getElementById('cust-date-contacted');
             if(dateInput) dateInput.value = todayStr;
 
-            // เชื่อมต่อระบบจัดเก็บข้อมูลและ Cloud Sync
             initCloudSync();
 
-            // ตรวจสอบ Session ที่ล็อกอินค้างไว้ (ไม่ต้องล็อกอินใหม่จนกว่าจะกดออกจากระบบ)
             const savedSession = localStorage.getItem('firesafe_logged_in_user');
             if (savedSession) {
                 try {
