@@ -62,14 +62,13 @@
                         <label class="block text-xs font-semibold text-slate-700 mb-1">ตำแหน่ง / บทบาท</label>
                         <select id="auth-role" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
                             <option value="พนักงานขาย (Sales)">พนักงานขาย (Sales)</option>
-                            <option value="ผู้จัดการ / ผู้ดูแลระบบ (Admin)">ผู้จัดการ / ผู้ดูแลระบบ (Admin)</option>
                         </select>
                     </div>
                 </div>
 
                 <div id="email-field-container">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">อีเมล์ (Username)</label>
-                    <input type="email" id="auth-email" placeholder="name@company.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อผู้ใช้งาน / อีเมล์ (Username)</label>
+                    <input type="text" id="auth-email" placeholder="admin หรือ name@company.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
                 </div>
 
                 <div id="password-field-container">
@@ -112,6 +111,10 @@
                 <button onclick="switchView('maintenance')" id="nav-maintenance" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
                     <i class="fa-solid fa-calendar-days w-5"></i>
                     <span>ตารางนัดหมาย</span>
+                </button>
+                <button onclick="switchView('admin')" id="nav-admin" class="hidden w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
+                    <i class="fa-solid fa-user-shield w-5 text-amber-400"></i>
+                    <span>จัดการผู้ใช้งานสำหรับ Admin</span>
                 </button>
             </nav>
 
@@ -346,18 +349,45 @@
 
                 <!-- 3. หน้า "แจ้งเตือนซ่อมบำรุง" -->
                 <div id="view-maintenance" class="space-y-6 hidden">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-gray-800">ปฏิทินตารางนัดหมาย (Appointment Calendar)</h2>
-                            <p class="text-xs text-gray-500 mt-0.5">ปฏิทินแสดงวันนัดหมายติดตามลูกค้าและซ่อมบำรุงประจำปี</p>
+                            <p class="text-xs text-gray-500 mt-0.5">ปฏิทินแสดงวันนัดหมายติดตามลูกค้า (แสดงบริษัท ผู้ติดต่อ และผู้รับผิดชอบ)</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <!-- นำช่องค้นหาในหน้าตารางนัดหมายออกตามคำขอ -->
-                            <div class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
-                                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                                <span id="calendar-month-year-label" class="text-sm font-bold text-gray-800 px-2 min-w-[140px] text-center">มกราคม 2569</span>
-                                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                        <div class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm">
+                            <!-- คลิกเลือก วัน / เดือน / ปี โดยตรง -->
+                            <div class="flex items-center space-x-1.5 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200">
+                                <i class="fa-regular fa-calendar-check text-fire-600 text-xs"></i>
+                                <span class="text-xs text-gray-500 font-medium">เลือกวัน/เดือน/ปี:</span>
+                                <input type="date" id="calendar-jump-date" onchange="jumpToCalendarDate(this.value)" class="bg-transparent text-xs font-semibold text-gray-800 focus:outline-none cursor-pointer">
                             </div>
+
+                            <!-- เลือกเดือนและปีแบบ Dropdown -->
+                            <div class="flex items-center space-x-1">
+                                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all" title="เดือนก่อนหน้า"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                <select id="calendar-month-select" onchange="selectCalendarMonthYear()" class="px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-fire-500 cursor-pointer">
+                                    <option value="0">มกราคม</option>
+                                    <option value="1">กุมภาพันธ์</option>
+                                    <option value="2">มีนาคม</option>
+                                    <option value="3">เมษายน</option>
+                                    <option value="4">พฤษภาคม</option>
+                                    <option value="5">มิถุนายน</option>
+                                    <option value="6">กรกฎาคม</option>
+                                    <option value="7">สิงหาคม</option>
+                                    <option value="8">กันยายน</option>
+                                    <option value="9">ตุลาคม</option>
+                                    <option value="10">พฤศจิกายน</option>
+                                    <option value="11">ธันวาคม</option>
+                                </select>
+                                <select id="calendar-year-select" onchange="selectCalendarMonthYear()" class="px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-fire-500 cursor-pointer">
+                                    <!-- ตัวเลือกปี พ.ศ. จะถูกสร้างผ่าน JavaScript -->
+                                </select>
+                                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all" title="เดือนถัดไป"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                            </div>
+
+                            <button onclick="goToTodayCalendar()" class="px-3 py-1.5 rounded-xl bg-fire-50 hover:bg-fire-100 text-fire-700 text-xs font-semibold transition-all">
+                                วันนี้
+                            </button>
                         </div>
                     </div>
 
@@ -380,8 +410,117 @@
                     </div>
                 </div>
 
+                <!-- 4. หน้า "จัดการผู้ใช้งานสำหรับ Admin" (เฉพาะ Admin เท่านั้น) -->
+                <div id="view-admin" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">จัดการผู้ใช้งานและข้อมูลระบบ (Admin Panel)</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">จัดการบัญชีผู้ใช้งานทั่วไป แก้ไขรหัสผ่าน และควบคุมเนื้อหาข้อมูลลูกค้าทั้งหมดในระบบ</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ส่วนที่ 1: ตารางจัดการผู้ใช้งานทั่วไป -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800 flex items-center">
+                                <i class="fa-solid fa-users-gear text-fire-600 mr-2"></i> รายชื่อผู้ใช้งานในระบบ
+                            </h3>
+                            <span id="admin-user-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 บัญชี</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold text-xs">
+                                        <th class="p-4">ชื่อ - นามสกุล</th>
+                                        <th class="p-4">ชื่อผู้ใช้งาน / อีเมล์</th>
+                                        <th class="p-4">ตำแหน่ง / บทบาท</th>
+                                        <th class="p-4">รหัสผ่าน</th>
+                                        <th class="p-4 text-center">จัดการบัญชี</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-table" class="divide-y divide-gray-100 text-gray-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ส่วนที่ 2: ตารางจัดการเนื้อหาและข้อมูลลูกค้าทั้งหมด -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800 flex items-center">
+                                <i class="fa-solid fa-database text-fire-600 mr-2"></i> จัดการเนื้อหาข้อมูลลูกค้าและงานขายทั้งหมด
+                            </h3>
+                            <span id="admin-content-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 รายการ</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold text-xs">
+                                        <th class="p-4">บริษัท / ชื่อลูกค้า</th>
+                                        <th class="p-4">ผู้ติดต่อ</th>
+                                        <th class="p-4">ผู้รับผิดชอบ (Owner)</th>
+                                        <th class="p-4">สถานะดีล</th>
+                                        <th class="p-4">นัดหมายถัดไป</th>
+                                        <th class="p-4 text-center">แก้ไข / ลบเนื้อหา</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-content-table" class="divide-y divide-gray-100 text-gray-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
+    </div>
+
+    <!-- Modal แก้ไขข้อมูลผู้ใช้งาน (สำหรับ Admin) -->
+    <div id="edit-user-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeEditUserModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 pointer-events-auto">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="font-bold text-base text-gray-800 flex items-center">
+                        <i class="fa-solid fa-user-pen text-fire-600 mr-2"></i> แก้ไขข้อมูลผู้ใช้งาน
+                    </h3>
+                    <button onclick="closeEditUserModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <form id="edit-user-form" onsubmit="saveEditedUser(event)" class="space-y-4">
+                    <input type="hidden" id="edit-user-index">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">ชื่อ - นามสกุล *</label>
+                        <input type="text" id="edit-user-fullname" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">ชื่อผู้ใช้งาน / อีเมล์ *</label>
+                        <input type="text" id="edit-user-email" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">ตำแหน่ง / บทบาท</label>
+                        <select id="edit-user-role" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                            <option value="พนักงานขาย (Sales)">พนักงานขาย (Sales)</option>
+                            <option value="ผู้จัดการ / ผู้ดูแลระบบ (Admin)">ผู้จัดการ / ผู้ดูแลระบบ (Admin)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">รหัสผ่าน *</label>
+                        <input type="text" id="edit-user-password" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                    </div>
+                    <div class="pt-2 flex justify-end space-x-2">
+                        <button type="button" onclick="closeEditUserModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50">ยกเลิก</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-fire-600 text-white text-xs font-semibold hover:bg-fire-700">บันทึกการเปลี่ยนแปลง</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Modal ฟอร์มเพิ่ม/แก้ไขลูกค้า (Slide-over) -->
@@ -619,128 +758,157 @@
         let customerRecordsList = JSON.parse(localStorage.getItem('firesafe_customers')) || [];
         let editingIndex = null;
         let currentCalendarDate = new Date();
-        let registeredUsers = JSON.parse(localStorage.getItem('firesafe_users')) || [
-            { email: 'sales@firesafe.com', password: '123456', fullname: 'สมชาย ยอดขาย', role: 'พนักงานขาย (Sales)' },
-            { email: 'admin@firesafe.com', password: '123456', fullname: 'วิชัย ผู้จัดการ', role: 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' }
-        ];
-        let currentUser = JSON.parse(localStorage.getItem('firesafe_current_user')) || null;
-        let authMode = 'login'; // 'login', 'register' หรือ 'forgot'
+        let selectedCalendarDate = null;
+        let currentDealPeriodFilter = 'day';
+        let currentAuthMode = 'login';
 
-        // ฟังก์ชันบันทึกข้อมูลลูกค้าลง localStorage
+        const defaultAdminAccount = {
+            fullname: 'ผู้ดูแลระบบหลัก (Admin)',
+            role: 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)',
+            email: 'admin',
+            password: 'admin'
+        };
+
+        let registeredUsers = JSON.parse(localStorage.getItem('firesafe_users')) || [
+            defaultAdminAccount,
+            {
+                fullname: 'สมชาย ยอดขาย',
+                role: 'พนักงานขาย (Sales)',
+                email: 'sales@pafglobal.com',
+                password: '123456'
+            }
+        ];
+
+        // ตรวจสอบให้แน่ใจว่ามีบัญชี admin / admin อยู่ในระบบเสมอ
+        if (!registeredUsers.some(u => u.email.toLowerCase() === 'admin')) {
+            registeredUsers.unshift(defaultAdminAccount);
+            localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+        }
+
+        let currentUser = JSON.parse(localStorage.getItem('firesafe_current_user')) || null;
+
         function saveCustomersToStorage() {
             localStorage.setItem('firesafe_customers', JSON.stringify(customerRecordsList));
         }
 
+        function saveUsersToStorage() {
+            localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+        }
+
+        // ระบบ Authentication (Login / Register / Forgot Password)
         window.switchAuthTab = function(mode) {
-            authMode = mode;
+            currentAuthMode = mode;
             const loginBtn = document.getElementById('tab-login-btn');
             const regBtn = document.getElementById('tab-register-btn');
             const forgotBtn = document.getElementById('tab-forgot-btn');
             const regFields = document.getElementById('register-fields');
-            const emailContainer = document.getElementById('email-field-container');
-            const passContainer = document.getElementById('password-field-container');
-            const submitBtn = document.getElementById('auth-submit-btn');
             const subtitle = document.getElementById('auth-subtitle');
-            const passLabel = document.getElementById('password-label');
+            const passwordLabel = document.getElementById('password-label');
+            const submitBtn = document.getElementById('auth-submit-btn');
 
-            // Reset classes
-            loginBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all';
-            regBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all';
-            forgotBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all';
+            [loginBtn, regBtn, forgotBtn].forEach(btn => {
+                btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+                btn.classList.add('text-slate-500');
+            });
 
             if (mode === 'login') {
-                loginBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all';
+                loginBtn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                loginBtn.classList.remove('text-slate-500');
                 regFields.classList.add('hidden');
-                emailContainer.classList.remove('hidden');
-                passContainer.classList.remove('hidden');
-                passLabel.innerText = 'รหัสผ่าน';
-                document.getElementById('auth-password').placeholder = '••••••••';
-                submitBtn.innerText = 'เข้าสู่ระบบ';
                 subtitle.innerText = 'กรุณาเข้าสู่ระบบเพื่อใช้งาน';
+                passwordLabel.innerText = 'รหัสผ่าน';
+                submitBtn.innerText = 'เข้าสู่ระบบ';
             } else if (mode === 'register') {
-                regBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all';
+                regBtn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                regBtn.classList.remove('text-slate-500');
                 regFields.classList.remove('hidden');
-                emailContainer.classList.remove('hidden');
-                passContainer.classList.remove('hidden');
-                passLabel.innerText = 'รหัสผ่าน';
-                document.getElementById('auth-password').placeholder = '••••••••';
+                subtitle.innerText = 'สมัครสมาชิกใหม่เพื่อเข้าใช้งานระบบ';
+                passwordLabel.innerText = 'กำหนดรหัสผ่าน';
                 submitBtn.innerText = 'สมัครสมาชิกและเข้าสู่ระบบ';
-                subtitle.innerText = 'สร้างบัญชีผู้ใช้งานใหม่ในระบบ CRM';
             } else if (mode === 'forgot') {
-                forgotBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all';
+                forgotBtn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                forgotBtn.classList.remove('text-slate-500');
                 regFields.classList.add('hidden');
-                emailContainer.classList.remove('hidden');
-                passContainer.classList.remove('hidden');
-                passLabel.innerText = 'รหัสผ่านใหม่ (New Password)';
-                document.getElementById('auth-password').placeholder = 'กรอกรหัสผ่านใหม่ที่ต้องการ';
+                subtitle.innerText = 'กรอกอีเมล์ที่ลงทะเบียนไว้เพื่อตั้งรหัสผ่านใหม่';
+                passwordLabel.innerText = 'รหัสผ่านใหม่';
                 submitBtn.innerText = 'รีเซ็ตรหัสผ่าน';
-                subtitle.innerText = 'กรอกอีเมล์และตั้งรหัสผ่านใหม่ของคุณ';
             }
         };
 
         window.handleAuthSubmit = function(event) {
             event.preventDefault();
-            const email = document.getElementById('auth-email').value.trim();
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
             const password = document.getElementById('auth-password').value.trim();
 
-            if (authMode === 'register') {
-                const fullname = document.getElementById('auth-fullname').value.trim();
-                const role = document.getElementById('auth-role').value;
-
-                if (!fullname) {
-                    showToast('กรุณากรอกชื่อ-นามสกุล', 'bg-red-500');
-                    return;
-                }
-
-                const existing = registeredUsers.find(u => u.email === email);
-                if (existing) {
-                    showToast('อีเมล์นี้มีผู้ใช้งานในระบบแล้ว', 'bg-red-500');
-                    return;
-                }
-
-                const newUser = { email, password, fullname, role };
-                registeredUsers.push(newUser);
-                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
-                currentUser = newUser;
-                localStorage.setItem('firesafe_current_user', JSON.stringify(currentUser));
-                showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ');
-            } else if (authMode === 'forgot') {
-                const user = registeredUsers.find(u => u.email === email);
-                if (!user) {
-                    showToast('ไม่พบอีเมล์นี้ในระบบ', 'bg-red-500');
-                    return;
-                }
-                user.password = password;
-                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
-                showToast('รีเซ็ตรหัสผ่านสำเร็จ! กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
-                switchAuthTab('login');
+            if (!email || !password) {
+                showToast('กรุณากรอกอีเมล์และรหัสผ่านให้ครบถ้วน', 'bg-red-600');
                 return;
-            } else {
-                const user = registeredUsers.find(u => u.email === email && u.password === password);
-                if (!user) {
-                    showToast('อีเมล์หรือรหัสผ่านไม่ถูกต้อง', 'bg-red-500');
-                    return;
-                }
-                currentUser = user;
-                localStorage.setItem('firesafe_current_user', JSON.stringify(currentUser));
-                showToast(`ยินดีต้อนรับกลับมา, ${user.fullname}`);
             }
 
-            // อัปเดตข้อมูลผู้ใช้ใน Sidebar
-            updateUserInterface();
+            if (currentAuthMode === 'register') {
+                const fullname = document.getElementById('auth-fullname').value.trim();
+                const role = 'พนักงานขาย (Sales)';
 
-            // ซ่อนหน้าจอ Auth และแสดง Main App
+                if (!fullname) {
+                    showToast('กรุณากรอกชื่อ - นามสกุล', 'bg-red-600');
+                    return;
+                }
+
+                if (email === 'admin') {
+                    showToast('ไม่สามารถใช้ชื่อผู้ใช้งาน admin สมัครสมาชิกได้', 'bg-red-600');
+                    return;
+                }
+
+                const existing = registeredUsers.find(u => u.email.toLowerCase() === email);
+                if (existing) {
+                    showToast('อีเมล์หรือชื่อผู้ใช้งานนี้ถูกใช้งานในระบบแล้ว', 'bg-red-600');
+                    return;
+                }
+
+                const newUser = { fullname, role, email, password };
+                registeredUsers.push(newUser);
+                saveUsersToStorage();
+                completeLogin(newUser);
+                showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ', 'bg-green-600');
+
+            } else if (currentAuthMode === 'login') {
+                const foundUser = registeredUsers.find(u => u.email.toLowerCase() === email && u.password === password);
+                if (!foundUser) {
+                    showToast('อีเมล์หรือรหัสผ่านไม่ถูกต้อง', 'bg-red-600');
+                    return;
+                }
+                completeLogin(foundUser);
+                showToast(`ยินดีต้อนรับคุณ ${foundUser.fullname}`, 'bg-green-600');
+
+            } else if (currentAuthMode === 'forgot') {
+                const userIndex = registeredUsers.findIndex(u => u.email.toLowerCase() === email);
+                if (userIndex === -1) {
+                    showToast('ไม่พบอีเมล์นี้ในระบบ', 'bg-red-600');
+                    return;
+                }
+                registeredUsers[userIndex].password = password;
+                saveUsersToStorage();
+                showToast('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', 'bg-green-600');
+                switchAuthTab('login');
+                document.getElementById('auth-password').value = '';
+            }
+        };
+
+        function completeLogin(user) {
+            currentUser = user;
+            localStorage.setItem('firesafe_current_user', JSON.stringify(user));
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('main-app-container').classList.remove('hidden');
-        };
+            updateUserInterface();
+            refreshAllViews();
+        }
 
         window.logoutSystem = function() {
             currentUser = null;
             localStorage.removeItem('firesafe_current_user');
-            document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('main-app-container').classList.add('hidden');
-            document.getElementById('auth-form').reset();
-            switchAuthTab('login');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('auth-password').value = '';
             showToast('ออกจากระบบเรียบร้อยแล้ว');
         };
 
@@ -749,52 +917,232 @@
             const nameEl = document.getElementById('user-display-name');
             const roleEl = document.getElementById('user-display-role');
             const avatarEl = document.getElementById('user-avatar-initial');
-            const welcomeTitleEl = document.getElementById('dashboard-welcome-title');
+            const welcomeEl = document.getElementById('dashboard-welcome-title');
+            const adminNavBtn = document.getElementById('nav-admin');
 
             if (nameEl) nameEl.innerText = currentUser.fullname;
             if (roleEl) roleEl.innerText = currentUser.role;
-            if (avatarEl) {
-                avatarEl.innerText = currentUser.fullname.substring(0, 2);
-            }
-            if (welcomeTitleEl) {
-                welcomeTitleEl.innerText = `ยินดีต้อนรับกลับ, คุณ${currentUser.fullname}`;
+            if (avatarEl) avatarEl.innerText = currentUser.fullname.substring(0, 2);
+            if (welcomeEl) welcomeEl.innerText = `ยินดีต้อนรับกลับ, คุณ${currentUser.fullname}`;
+
+            const isAdmin = currentUser.role === 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' || currentUser.email.toLowerCase() === 'admin';
+            if (adminNavBtn) {
+                if (isAdmin) {
+                    adminNavBtn.classList.remove('hidden');
+                } else {
+                    adminNavBtn.classList.add('hidden');
+                }
             }
         }
 
+        // การสลับหน้าเมนูหลัก
         window.switchView = function(viewName) {
-            const views = ['dashboard', 'deals', 'maintenance'];
+            const isAdmin = currentUser && (currentUser.role === 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' || currentUser.email.toLowerCase() === 'admin');
+            if (viewName === 'admin' && !isAdmin) {
+                showToast('คุณไม่มีสิทธิ์เข้าถึงเมนูสำหรับผู้ดูแลระบบ', 'bg-red-600');
+                return;
+            }
+
+            const views = ['dashboard', 'deals', 'maintenance', 'admin'];
             views.forEach(v => {
-                const el = document.getElementById(`view-${v}`);
-                const nav = document.getElementById(`nav-${v}`);
-                if (el) el.classList.add('hidden');
-                if (nav) {
-                    nav.classList.remove('bg-fire-600', 'text-white', 'shadow-sm');
-                    nav.classList.add('hover:bg-slate-800', 'text-slate-300');
+                const viewEl = document.getElementById(`view-${v}`);
+                const navEl = document.getElementById(`nav-${v}`);
+                if (viewEl) {
+                    if (v === viewName) viewEl.classList.remove('hidden');
+                    else viewEl.classList.add('hidden');
+                }
+                if (navEl) {
+                    if (v === viewName) {
+                        navEl.classList.add('bg-fire-600', 'text-white', 'shadow-sm');
+                        navEl.classList.remove('hover:bg-slate-800', 'text-slate-300');
+                    } else {
+                        navEl.classList.remove('bg-fire-600', 'text-white', 'shadow-sm');
+                        navEl.classList.add('hover:bg-slate-800', 'text-slate-300');
+                    }
                 }
             });
 
-            const targetView = document.getElementById(`view-${viewName}`);
-            const targetNav = document.getElementById(`nav-${viewName}`);
-            if (targetView) targetView.classList.remove('hidden');
-            if (targetNav) {
-                targetNav.classList.remove('hover:bg-slate-800', 'text-slate-300');
-                targetNav.classList.add('bg-fire-600', 'text-white', 'shadow-sm');
-            }
-
             if (viewName === 'maintenance') {
                 renderCalendar();
+            } else if (viewName === 'deals') {
+                renderKanbanBoard();
+            } else if (viewName === 'dashboard') {
+                updateDashboardMetrics();
+                renderCustomerTable();
+            } else if (viewName === 'admin') {
+                renderAdminPanel();
             }
         };
 
+        // ฟังก์ชันสำหรับหน้า Admin Management
+        window.renderAdminPanel = function() {
+            const usersTbody = document.getElementById('admin-users-table');
+            const contentTbody = document.getElementById('admin-content-table');
+            const userCountBadge = document.getElementById('admin-user-count');
+            const contentCountBadge = document.getElementById('admin-content-count');
+
+            if (userCountBadge) userCountBadge.innerText = `${registeredUsers.length} บัญชี`;
+            if (contentCountBadge) contentCountBadge.innerText = `${customerRecordsList.length} รายการ`;
+
+            if (usersTbody) {
+                let usersHtml = '';
+                registeredUsers.forEach((u, idx) => {
+                    const isCoreAdmin = u.email.toLowerCase() === 'admin';
+                    usersHtml += `
+                        <tr class="hover:bg-gray-50 transition-all">
+                            <td class="p-4 font-semibold text-gray-800">${u.fullname}</td>
+                            <td class="p-4 text-gray-600">${u.email}</td>
+                            <td class="p-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isCoreAdmin || u.role.includes('Admin') ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}">
+                                    ${u.role}
+                                </span>
+                            </td>
+                            <td class="p-4 text-gray-500 font-mono text-xs">${u.password}</td>
+                            <td class="p-4 text-center space-x-2">
+                                <button onclick="openEditUserModal(${idx})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไขผู้ใช้งาน">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                ${isCoreAdmin
+                                    ? `<span class="text-[11px] text-gray-400 px-1.5" title="บัญชีหลักไม่สามารถลบได้"><i class="fa-solid fa-lock"></i></span>`
+                                    : `<button onclick="deleteUserAccount(${idx})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบผู้ใช้งาน"><i class="fa-solid fa-trash"></i></button>`
+                                }
+                            </td>
+                        </tr>
+                    `;
+                });
+                usersTbody.innerHTML = usersHtml || `<tr><td colspan="5" class="p-8 text-center text-gray-400">ไม่มีข้อมูลผู้ใช้งาน</td></tr>`;
+            }
+
+            if (contentTbody) {
+                if (customerRecordsList.length === 0) {
+                    contentTbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลลูกค้าในระบบ</td></tr>`;
+                } else {
+                    let contentHtml = '';
+                    customerRecordsList.forEach((cust, index) => {
+                        contentHtml += `
+                            <tr class="hover:bg-gray-50 transition-all">
+                                <td class="p-4 font-semibold text-gray-800">${cust.companyName}</td>
+                                <td class="p-4 text-gray-600">${cust.contactName} (${cust.contactPhone})</td>
+                                <td class="p-4 text-gray-600">${cust.owner}</td>
+                                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fire-50 text-fire-700">${cust.dealStage}</span></td>
+                                <td class="p-4 text-gray-500">${cust.nextAppt || '-'}</td>
+                                <td class="p-4 text-center space-x-2">
+                                    <button onclick="openCustomerModal(${index})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไขข้อมูล"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteCustomer(${index})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบข้อมูล"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    contentTbody.innerHTML = contentHtml;
+                }
+            }
+        };
+
+        window.openEditUserModal = function(index) {
+            const user = registeredUsers[index];
+            if (!user) return;
+            document.getElementById('edit-user-index').value = index;
+            document.getElementById('edit-user-fullname').value = user.fullname;
+            document.getElementById('edit-user-email').value = user.email;
+            document.getElementById('edit-user-role').value = user.role;
+            document.getElementById('edit-user-password').value = user.password;
+
+            const emailInput = document.getElementById('edit-user-email');
+            const roleSelect = document.getElementById('edit-user-role');
+            if (user.email.toLowerCase() === 'admin') {
+                emailInput.readOnly = true;
+                emailInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                roleSelect.disabled = true;
+            } else {
+                emailInput.readOnly = false;
+                emailInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                roleSelect.disabled = false;
+            }
+
+            document.getElementById('edit-user-modal').classList.remove('hidden');
+        };
+
+        window.closeEditUserModal = function() {
+            document.getElementById('edit-user-modal').classList.add('hidden');
+        };
+
+        window.saveEditedUser = function(event) {
+            event.preventDefault();
+            const index = parseInt(document.getElementById('edit-user-index').value, 10);
+            const user = registeredUsers[index];
+            if (!user) return;
+
+            const newFullname = document.getElementById('edit-user-fullname').value.trim();
+            const newEmail = document.getElementById('edit-user-email').value.trim().toLowerCase();
+            const newRole = document.getElementById('edit-user-role').value;
+            const newPassword = document.getElementById('edit-user-password').value.trim();
+
+            if (!newFullname || !newEmail || !newPassword) {
+                showToast('กรุณากรอกข้อมูลให้ครบถ้วน', 'bg-red-600');
+                return;
+            }
+
+            const duplicate = registeredUsers.some((u, idx) => idx !== index && u.email.toLowerCase() === newEmail);
+            if (duplicate) {
+                showToast('ชื่อผู้ใช้งานหรืออีเมล์นี้ซ้ำกับบัญชีอื่นในระบบ', 'bg-red-600');
+                return;
+            }
+
+            registeredUsers[index] = {
+                fullname: newFullname,
+                email: user.email.toLowerCase() === 'admin' ? 'admin' : newEmail,
+                role: user.email.toLowerCase() === 'admin' ? 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' : newRole,
+                password: newPassword
+            };
+
+            saveUsersToStorage();
+
+            if (currentUser && currentUser.email.toLowerCase() === registeredUsers[index].email.toLowerCase()) {
+                currentUser = registeredUsers[index];
+                localStorage.setItem('firesafe_current_user', JSON.stringify(currentUser));
+                updateUserInterface();
+            }
+
+            closeEditUserModal();
+            renderAdminPanel();
+            showToast('บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว', 'bg-green-600');
+        };
+
+        window.deleteUserAccount = function(index) {
+            const target = registeredUsers[index];
+            if (!target) return;
+            if (target.email.toLowerCase() === 'admin') {
+                showToast('ไม่สามารถลบบัญชีผู้ดูแลระบบหลักได้', 'bg-red-600');
+                return;
+            }
+
+            registeredUsers.splice(index, 1);
+            saveUsersToStorage();
+            renderAdminPanel();
+            showToast(`ลบบัญชีผู้ใช้งาน "${target.fullname}" เรียบร้อยแล้ว`, 'bg-slate-800');
+        };
+
+        window.toggleNotificationDropdown = function() {
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown) dropdown.classList.toggle('hidden');
+        };
+
+        // จัดการ Modal เพิ่ม/แก้ไขลูกค้า
         window.openCustomerModal = function(index = null) {
-            editingIndex = index;
             const modal = document.getElementById('customer-modal');
-            const modalTitle = document.getElementById('modal-title');
-            
+            const form = document.getElementById('new-customer-form');
+            const title = document.getElementById('modal-title');
+            const ownerInput = document.getElementById('cust-owner');
+
+            editingIndex = index;
+            form.reset();
+
+            const defaultOwner = currentUser ? currentUser.fullname : 'สมชาย ยอดขาย';
+
             if (index !== null && customerRecordsList[index]) {
-                modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-fire-600 mr-2"></i> แก้ไขข้อมูลลูกค้า`;
                 const cust = customerRecordsList[index];
-                
+                title.innerHTML = `<i class="fa-solid fa-pen-to-square text-fire-600 mr-2"></i> แก้ไขข้อมูลลูกค้า`;
+
                 document.getElementById('cust-company').value = cust.companyName || '';
                 document.getElementById('cust-contact').value = cust.contactName || '';
                 document.getElementById('cust-email').value = cust.email || '';
@@ -802,39 +1150,38 @@
                 document.getElementById('cust-line').value = cust.line || '';
                 document.getElementById('cust-phone').value = cust.contactPhone || '';
                 document.getElementById('cust-date-contacted').value = cust.dateContacted || '';
+
                 document.getElementById('cust-address').value = cust.address || '';
                 document.getElementById('cust-province').value = cust.province || '';
                 document.getElementById('cust-district').value = cust.district || '';
                 document.getElementById('cust-subdistrict').value = cust.subdistrict || '';
                 document.getElementById('cust-zipcode').value = cust.zipcode || '';
+
                 document.getElementById('cust-biz-group').value = cust.bizGroup || '';
                 document.getElementById('cust-biz-type').value = cust.bizType || '';
                 document.getElementById('cust-biz-size').value = cust.bizSize || 'เล็ก';
                 document.getElementById('cust-capital').value = cust.capital || '';
+
                 document.getElementById('cust-usage-place').value = cust.usagePlace || '';
                 document.getElementById('cust-channel').value = cust.channel || '';
                 document.getElementById('cust-details').value = cust.details || '';
                 document.getElementById('cust-referrer').value = cust.referrer || '';
                 document.getElementById('cust-product-interest').value = cust.productInterest || '';
                 document.getElementById('cust-budget').value = cust.budget || '';
+
                 document.getElementById('cust-deal-stage').value = cust.dealStage || 'รับข้อมูล';
                 document.getElementById('cust-priority').value = cust.priority || 'ปกติ';
-                document.getElementById('cust-owner').value = cust.owner || (currentUser ? currentUser.fullname : 'พนักงาน');
+                if (ownerInput) ownerInput.value = cust.owner || defaultOwner;
                 document.getElementById('cust-next-appt').value = cust.nextAppt || '';
                 document.getElementById('cust-next-goal').value = cust.nextGoal || '';
+
                 document.getElementById('cust-interest-level').value = cust.interestLevel || 'สนใจเบื้องต้น';
                 document.getElementById('cust-extra-notes').value = cust.extraNotes || '';
             } else {
-                modalTitle.innerHTML = `<i class="fa-solid fa-user-plus text-fire-600 mr-2"></i> เพิ่มข้อมูลลูกค้าใหม่`;
-                document.getElementById('new-customer-form').reset();
+                title.innerHTML = `<i class="fa-solid fa-user-plus text-fire-600 mr-2"></i> เพิ่มข้อมูลลูกค้าใหม่`;
                 const todayStr = new Date().toISOString().split('T')[0];
-                const dateInput = document.getElementById('cust-date-contacted');
-                if(dateInput) dateInput.value = todayStr;
-                // กำหนดชื่อผู้รับผิดชอบตามบัญชีที่ล็อกอินอยู่ปัจจุบัน
-                const ownerInput = document.getElementById('cust-owner');
-                if(ownerInput && currentUser) {
-                    ownerInput.value = currentUser.fullname;
-                }
+                document.getElementById('cust-date-contacted').value = todayStr;
+                if (ownerInput) ownerInput.value = defaultOwner;
             }
 
             modal.classList.remove('hidden');
@@ -849,118 +1196,161 @@
             const companyName = document.getElementById('cust-company').value.trim();
             const contactName = document.getElementById('cust-contact').value.trim();
             const contactPhone = document.getElementById('cust-phone').value.trim();
-            const nextApptDate = document.getElementById('cust-next-appt').value;
+            const dateContacted = document.getElementById('cust-date-contacted').value;
+            const nextAppt = document.getElementById('cust-next-appt').value;
 
-            if (!companyName || !contactName || !contactPhone || !nextApptDate) {
-                alert('กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน');
+            if (!companyName || !contactName || !contactPhone || !dateContacted || !nextAppt) {
+                showToast('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน', 'bg-red-600');
                 return;
             }
 
-            const stage = document.getElementById('cust-deal-stage').value;
-            const nextGoal = document.getElementById('cust-next-goal').value;
-            const owner = document.getElementById('cust-owner').value;
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            const ownerName = document.getElementById('cust-owner').value.trim() || (currentUser ? currentUser.fullname : 'สมชาย ยอดขาย');
 
             const customerData = {
-                companyName: companyName,
-                contactName: contactName,
-                email: document.getElementById('cust-email').value,
-                position: document.getElementById('cust-position').value,
-                line: document.getElementById('cust-line').value,
-                contactPhone: contactPhone,
-                dateContacted: document.getElementById('cust-date-contacted').value,
-                address: document.getElementById('cust-address').value,
-                province: document.getElementById('cust-province').value,
-                district: document.getElementById('cust-district').value,
-                subdistrict: document.getElementById('cust-subdistrict').value,
-                zipcode: document.getElementById('cust-zipcode').value,
-                bizGroup: document.getElementById('cust-biz-group').value,
-                bizType: document.getElementById('cust-biz-type').value,
+                companyName,
+                contactName,
+                email: document.getElementById('cust-email').value.trim(),
+                position: document.getElementById('cust-position').value.trim(),
+                line: document.getElementById('cust-line').value.trim(),
+                contactPhone,
+                dateContacted,
+                address: document.getElementById('cust-address').value.trim(),
+                province: document.getElementById('cust-province').value.trim(),
+                district: document.getElementById('cust-district').value.trim(),
+                subdistrict: document.getElementById('cust-subdistrict').value.trim(),
+                zipcode: document.getElementById('cust-zipcode').value.trim(),
+                bizGroup: document.getElementById('cust-biz-group').value.trim(),
+                bizType: document.getElementById('cust-biz-type').value.trim(),
                 bizSize: document.getElementById('cust-biz-size').value,
-                capital: document.getElementById('cust-capital').value,
-                usagePlace: document.getElementById('cust-usage-place').value,
-                channel: document.getElementById('cust-channel').value,
-                details: document.getElementById('cust-details').value,
-                referrer: document.getElementById('cust-referrer').value,
-                productInterest: document.getElementById('cust-product-interest').value,
-                budget: document.getElementById('cust-budget').value,
-                dealStage: stage,
+                capital: document.getElementById('cust-capital').value.trim(),
+                usagePlace: document.getElementById('cust-usage-place').value.trim(),
+                channel: document.getElementById('cust-channel').value.trim(),
+                details: document.getElementById('cust-details').value.trim(),
+                referrer: document.getElementById('cust-referrer').value.trim(),
+                productInterest: document.getElementById('cust-product-interest').value.trim(),
+                budget: document.getElementById('cust-budget').value.trim(),
+                dealStage: document.getElementById('cust-deal-stage').value,
                 priority: document.getElementById('cust-priority').value,
-                owner: owner,
-                nextAppt: nextApptDate,
-                nextGoal: nextGoal,
+                owner: ownerName,
+                nextAppt,
+                nextGoal: document.getElementById('cust-next-goal').value.trim(),
                 interestLevel: document.getElementById('cust-interest-level').value,
-                extraNotes: document.getElementById('cust-extra-notes').value,
-                dateAdded: new Date().toLocaleDateString('th-TH'),
-                lastUpdated: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                extraNotes: document.getElementById('cust-extra-notes').value.trim(),
+                dateAdded: editingIndex !== null ? customerRecordsList[editingIndex].dateAdded : todayStr,
+                lastUpdated: timeStr,
+                activityAction: editingIndex !== null ? 'แก้ไขข้อมูล' : 'เพิ่มลูกค้าใหม่'
             };
 
-            if (editingIndex !== null && editingIndex >= 0) {
-                customerData.activityAction = 'อัปเดตข้อมูลและแผนติดตาม';
+            if (editingIndex !== null) {
                 customerRecordsList[editingIndex] = customerData;
+                showToast('อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว', 'bg-green-600');
             } else {
-                customerData.activityAction = 'เพิ่มลูกค้าใหม่';
-                customerRecordsList.push(customerData);
+                customerRecordsList.unshift(customerData);
+                showToast('บันทึกข้อมูลลูกค้าใหม่เรียบร้อยแล้ว', 'bg-green-600');
             }
 
             saveCustomersToStorage();
             closeCustomerModal();
-            renderCustomerTable();
-            renderKanbanBoard();
-            updateDashboardMetrics();
-            renderCalendar();
-            showToast('บันทึกข้อมูลเรียบร้อยแล้ว');
+            refreshAllViews();
         };
 
         window.deleteCustomer = function(index) {
-            if (confirm('คุณต้องการลบข้อมูลลูกค้าระเบียนนี้ใช่หรือไม่?')) {
-                customerRecordsList.splice(index, 1);
-                saveCustomersToStorage();
-                renderCustomerTable();
-                renderKanbanBoard();
-                updateDashboardMetrics();
-                renderCalendar();
-                showToast('ลบข้อมูลสำเร็จ', 'bg-red-500');
-            }
+            if (index < 0 || index >= customerRecordsList.length) return;
+            const removed = customerRecordsList.splice(index, 1);
+            saveCustomersToStorage();
+            refreshAllViews();
+            showToast(`ลบข้อมูล "${removed[0].companyName}" เรียบร้อยแล้ว`, 'bg-slate-800');
         };
 
         window.changeDealFilter = function(period) {
+            currentDealPeriodFilter = period;
             ['day', 'month', 'year'].forEach(p => {
                 const btn = document.getElementById(`filter-${p}-btn`);
-                if (btn) {
-                    if (p === period) {
-                        btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-fire-600 text-white transition-all';
-                    } else {
-                        btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all';
-                    }
+                if (!btn) return;
+                if (p === period) {
+                    btn.classList.add('bg-fire-600', 'text-white');
+                    btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                } else {
+                    btn.classList.remove('bg-fire-600', 'text-white');
+                    btn.classList.add('text-gray-600', 'hover:bg-gray-100');
                 }
             });
-            showToast(`เปลี่ยนมุมมองข้อมูลเป็นแบบ: ${period === 'day' ? 'รายวัน' : (period === 'month' ? 'รายเดือน' : 'รายปี')}`);
             renderKanbanBoard();
         };
 
-        window.toggleNotificationDropdown = function() {
-            const dropdown = document.getElementById('notification-dropdown');
-            if (dropdown) dropdown.classList.toggle('hidden');
-        };
+        function refreshAllViews() {
+            updateDashboardMetrics();
+            renderCustomerTable();
+            renderKanbanBoard();
+            renderCalendar();
+            renderAdminPanel();
+        }
 
         window.changeCalendarMonth = function(direction) {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
             renderCalendar();
         };
 
+        window.selectCalendarMonthYear = function() {
+            const monthSelect = document.getElementById('calendar-month-select');
+            const yearSelect = document.getElementById('calendar-year-select');
+            if (!monthSelect || !yearSelect) return;
+            currentCalendarDate.setFullYear(parseInt(yearSelect.value, 10));
+            currentCalendarDate.setMonth(parseInt(monthSelect.value, 10));
+            renderCalendar();
+        };
+
+        window.jumpToCalendarDate = function(dateStr) {
+            if (!dateStr) return;
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                currentCalendarDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+                selectedCalendarDate = dateStr;
+                renderCalendar();
+                const appts = customerRecordsList.filter(cust => cust.nextAppt === dateStr);
+                if (appts.length > 0) {
+                    openAppointmentDetail(dateStr);
+                } else {
+                    showToast(`แสดงปฏิทินวันที่ ${dateStr} (ไม่มีคิวนัดหมายในวันนี้)`);
+                }
+            }
+        };
+
+        window.goToTodayCalendar = function() {
+            const today = new Date();
+            currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            selectedCalendarDate = today.toISOString().split('T')[0];
+            const jumpInput = document.getElementById('calendar-jump-date');
+            if (jumpInput) jumpInput.value = selectedCalendarDate;
+            renderCalendar();
+        };
+
+        function populateCalendarYearOptions(activeYear) {
+            const yearSelect = document.getElementById('calendar-year-select');
+            if (!yearSelect) return;
+            const currentYear = new Date().getFullYear();
+            const startYear = Math.min(currentYear - 5, activeYear - 2);
+            const endYear = Math.max(currentYear + 5, activeYear + 2);
+            let optionsHtml = '';
+            for (let y = startYear; y <= endYear; y++) {
+                optionsHtml += `<option value="${y}" ${y === activeYear ? 'selected' : ''}>พ.ศ. ${y + 543}</option>`;
+            }
+            yearSelect.innerHTML = optionsHtml;
+        }
+
         window.renderCalendar = function() {
             const grid = document.getElementById('calendar-grid');
-            const label = document.getElementById('calendar-month-year-label');
-            if (!grid || !label) return;
+            const monthSelect = document.getElementById('calendar-month-select');
+            if (!grid) return;
 
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
 
-            const thaiMonths = [
-                'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-                'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-            ];
-            label.innerText = `${thaiMonths[month]} ${year + 543}`;
+            if (monthSelect) monthSelect.value = String(month);
+            populateCalendarYearOptions(year);
 
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
@@ -969,7 +1359,7 @@
             
             // ช่องว่างของวันในสัปดาห์ก่อนหน้า
             for (let i = 0; i < firstDayIndex; i++) {
-                html += `<div class="bg-gray-50 min-h-[100px] p-2 opacity-40"></div>`;
+                html += `<div class="bg-gray-50 min-h-[135px] p-2 opacity-40"></div>`;
             }
 
             // วนลูปสร้างวันในเดือน
@@ -981,24 +1371,42 @@
                 const apptsOnThisDay = customerRecordsList.filter(cust => cust.nextAppt === dateStr);
 
                 const isToday = new Date().toISOString().split('T')[0] === dateStr;
-                const todayBadgeClass = isToday ? 'bg-fire-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold' : 'text-gray-700 font-semibold';
+                const isSelected = selectedCalendarDate === dateStr;
+                const todayBadgeClass = isToday
+                    ? 'bg-fire-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold'
+                    : (isSelected ? 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold' : 'text-gray-700 font-semibold');
 
                 let apptsHtml = '';
                 apptsOnThisDay.forEach((cust) => {
                     apptsHtml += `
-                        <div onclick="openAppointmentDetail('${dateStr}')" class="bg-fire-50 hover:bg-fire-100 border border-fire-200 text-fire-800 text-[10px] p-1.5 rounded-lg truncate font-medium cursor-pointer transition-all flex items-center justify-between">
-                            <span class="truncate"><i class="fa-solid fa-circle text-[6px] text-fire-600 mr-1"></i>${cust.companyName}</span>
+                        <div onclick="openAppointmentDetail('${dateStr}')" class="bg-fire-50 hover:bg-fire-100 border border-fire-200 text-gray-800 text-[10px] p-1.5 rounded-lg cursor-pointer transition-all space-y-0.5 shadow-2xs" title="คลิกเพื่อดูรายละเอียดทั้งหมด">
+                            <div class="font-bold text-fire-700 truncate flex items-center">
+                                <i class="fa-solid fa-building text-[9px] mr-1 flex-shrink-0"></i>
+                                <span class="truncate">${cust.companyName || '-'}</span>
+                            </div>
+                            <div class="text-gray-700 truncate flex items-center">
+                                <i class="fa-solid fa-user text-[9px] text-gray-400 mr-1 flex-shrink-0"></i>
+                                <span class="truncate">ติดต่อ: ${cust.contactName || '-'}</span>
+                            </div>
+                            <div class="text-blue-700 font-medium truncate flex items-center">
+                                <i class="fa-solid fa-user-tie text-[9px] text-blue-500 mr-1 flex-shrink-0"></i>
+                                <span class="truncate">ดูแล: ${cust.owner || '-'}</span>
+                            </div>
                         </div>
                     `;
                 });
 
+                const cellHighlightClass = isSelected
+                    ? 'ring-2 ring-blue-500 bg-blue-50/25'
+                    : (isToday ? 'ring-2 ring-fire-500/50 bg-fire-50/20' : '');
+
                 html += `
-                    <div class="bg-white min-h-[110px] p-2 flex flex-col justify-between hover:bg-gray-50/80 transition-all ${isToday ? 'ring-2 ring-fire-500/50 bg-fire-50/20' : ''}">
+                    <div class="bg-white min-h-[135px] p-2 flex flex-col justify-between hover:bg-gray-50/80 transition-all ${cellHighlightClass}">
                         <div class="flex justify-between items-center">
                             <span class="text-xs ${todayBadgeClass}">${day}</span>
-                            ${apptsOnThisDay.length > 0 ? `<span class="text-[10px] bg-fire-600 text-white px-1.5 py-0.2 rounded-full font-bold">${apptsOnThisDay.length}</span>` : ''}
+                            ${apptsOnThisDay.length > 0 ? `<span class="text-[10px] bg-fire-600 text-white px-1.5 py-0.5 rounded-full font-bold">${apptsOnThisDay.length} นัด</span>` : ''}
                         </div>
-                        <div class="flex-1 mt-1.5 space-y-1 overflow-y-auto max-h-[75px]">
+                        <div class="flex-1 mt-1.5 space-y-1.5 overflow-y-auto max-h-[105px]">
                             ${apptsHtml}
                         </div>
                     </div>
