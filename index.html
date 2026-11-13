@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบ CRM ธุรกิจดับเพลิง</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        fire: {
+                            50: '#fff5f5',
+                            100: '#ffe3e3',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 antialiased">
+
+    <!-- Authentication Screen (Login / Register) -->
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-8 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-fire-600 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg shadow-fire-600/30">
+                    <i class="fa-solid fa-fire-extinguisher"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">FireSafe CRM</h1>
+                <p id="auth-subtitle" class="text-xs text-slate-500">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex bg-slate-100 p-1 rounded-xl">
+                <button type="button" onclick="switchAuthTab('login')" id="tab-login-btn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all">เข้าสู่ระบบ</button>
+                <button type="button" onclick="switchAuthTab('register')" id="tab-register-btn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all">สมัครสมาชิก</button>
+                <button type="button" onclick="switchAuthTab('forgot')" id="tab-forgot-btn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all">ลืมรหัสผ่าน</button>
+            </div>
+
+            <!-- Form -->
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div id="register-fields" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อ -นามสกุล</label>
+                        <input type="text" id="auth-fullname" placeholder="สมชาย ยอดขาย" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">ตำแหน่ง / บทบาท</label>
+                        <select id="auth-role" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                            <option value="พนักงานขาย (Sales)">พนักงานขาย (Sales)</option>
+                            <option value="ผู้จัดการ / ผู้ดูแลระบบ (Admin)">ผู้จัดการ / ผู้ดูแลระบบ (Admin)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="email-field-container">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">อีเมล์ (Username)</label>
+                    <input type="email" id="auth-email" placeholder="name@company.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                </div>
+
+                <div id="password-field-container">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" id="password-label">รหัสผ่าน</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-fire-600 hover:bg-fire-700 text-white font-semibold rounded-xl text-sm shadow-lg shadow-fire-600/30 transition-all">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Container หลักของระบบ (ซ่อนไว้จนกว่าจะ Login สำเร็จ) -->
+    <div id="main-app-container" class="flex h-screen overflow-hidden hidden">
+        
+        <!-- Sidebar เมนูด้านข้าง -->
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-20">
+            <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
+                <div class="bg-fire-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid fa-fire-extinguisher text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-white text-base leading-tight">FireSafe CRM</h1>
+                    <span class="text-xs text-slate-400">ระบบจัดการงานขายดับเพลิง</span>
+                </div>
+            </div>
+
+            <!-- เมนูนำทาง -->
+            <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-fire-600 text-white font-medium text-sm shadow-sm transition-all">
+                    <i class="fa-solid fa-chart-pie w-5"></i>
+                    <span>ภาพรวม</span>
+                </button>
+                <button onclick="switchView('deals')" id="nav-deals" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
+                    <i class="fa-solid fa-handshake w-5"></i>
+                    <span>ติดตามงานขาย</span>
+                </button>
+                <button onclick="switchView('maintenance')" id="nav-maintenance" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all">
+                    <i class="fa-solid fa-calendar-days w-5"></i>
+                    <span>ตารางนัดหมาย</span>
+                </button>
+            </nav>
+
+            <!-- ข้อมูลผู้ใช้งานระบบด้านล่าง Sidebar พร้อมปุ่มออกจากระบบ -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/55 flex items-center justify-between">
+                <div class="flex items-center space-x-3 truncate">
+                    <div id="user-avatar-initial" class="w-10 h-10 rounded-full bg-fire-500/20 text-fire-500 flex items-center justify-center font-bold flex-shrink-0">
+                        สม
+                    </div>
+                    <div class="truncate">
+                        <p id="user-display-name" class="text-sm font-semibold text-white truncate">สมชาย ยอดขาย</p>
+                        <p id="user-display-role" class="text-xs text-slate-400 truncate">พนักงานขาย (Sales)</p>
+                    </div>
+                </div>
+                <button onclick="logoutSystem()" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-all" title="ออกจากระบบ">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- พื้นที่แสดงเนื้อหาหลัก (Main Content Area) -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Top Navigation Bar -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10 shadow-sm">
+                <!-- นำช่องค้นหาออกตามคำขอ -->
+                <div></div>
+
+                <!-- ขวาบน: แจ้งเตือนและปุ่มเพิ่มลูกค้า -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button onclick="toggleNotificationDropdown()" class="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 relative transition-all">
+                            <i class="fa-regular fa-bell text-lg"></i>
+                            <span id="notification-badge" class="absolute top-2 right-2 w-2 h-2 bg-fire-600 rounded-full hidden"></span>
+                        </button>
+                        <!-- Dropdown แจ้งเตือนกระดิ่ง -->
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50">
+                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-100">
+                                <h3 class="font-bold text-sm text-gray-800">การแจ้งเตือนนัดหมาย</h3>
+                                <span class="text-xs bg-fire-100 text-fire-700 px-2 py-0.5 rounded-full font-semibold" id="notification-count-badge">0 รายการ</span>
+                            </div>
+                            <div id="notification-dropdown-list" class="space-y-2 max-h-64 overflow-y-auto">
+                                <p class="text-xs text-gray-400 text-center py-4">ไม่มีการแจ้งเตือนนัดหมายในขณะนี้</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="openCustomerModal()" class="bg-fire-600 hover:bg-fire-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm shadow-fire-600/30 flex items-center space-x-2 transition-all">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>เพิ่มลูกค้าใหม่</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- เนื้อหาภายในหน้าที่เปลี่ยนไปตามเมนู -->
+            <div class="flex-1 overflow-y-auto bg-gray-50 p-6">
+
+                <!-- 1. หน้า "ภาพรวม" (Dashboard) -->
+                <div id="view-dashboard" class="space-y-6">
+                    <!-- Header สรุปข้อมูลพนักงานขาย -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 rounded-2xl bg-fire-500/10 text-fire-600 flex items-center justify-center text-2xl font-bold shadow-inner">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">ยินดีต้อนรับกลับ, คุณสมชาย ยอดขาย</h2>
+                                <p class="text-sm text-gray-500 flex items-center mt-0.5">
+                                    <i class="fa-regular fa-calendar mr-2 text-fire-500"></i> วันนี้: <span id="current-date-display" class="font-medium text-gray-700 ml-1"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 w-full md:w-auto">
+                            <div class="bg-blue-50 border border-blue-100 px-4 py-2.5 rounded-xl text-center flex-1 md:flex-initial">
+                                <span class="block text-xs text-blue-600 font-medium">นัดหมายวันนี้</span>
+                                <span id="stat-today-appointments" class="text-lg font-bold text-blue-700">0</span>
+                            </div>
+                            <div class="bg-red-50 border border-red-100 px-4 py-2.5 rounded-xl text-center flex-1 md:flex-initial">
+                                <span class="block text-xs text-red-600 font-medium">เกินกำหนดนัด</span>
+                                <span id="stat-overdue-appointments" class="text-lg font-bold text-red-700">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- แจ้งเตือนติดตามนัดหมาย -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800 flex items-center">
+                                <i class="fa-solid fa-bell text-fire-600 mr-2"></i> แจ้งเตือนติดตามนัดหมาย
+                            </h3>
+                            <span class="text-xs text-gray-400">อัปเดตแบบเรียลไทม์</span>
+                        </div>
+                        <div id="appointment-alerts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- รายการแจ้งเตือนจะถูกแทรกที่นี่ -->
+                            <div class="col-span-full py-8 text-center text-gray-400 text-sm">
+                                ไม่มีคิวติดตามนัดหมายในระบบขณะนี้
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- แถบกิจกรรมล่าสุด (Recent Activities) อ้างอิงสถานะและแผนติดตาม -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800 flex items-center">
+                                <i class="fa-solid fa-clock-rotate-left text-fire-600 mr-2"></i> กิจกรรมล่าสุด & แผนติดตาม
+                            </h3>
+                            <span class="text-xs text-gray-400">บันทึกการอัปเดตล่าสุด</span>
+                        </div>
+                        <div id="recent-activities-container" class="space-y-3">
+                            <div class="py-6 text-center text-gray-400 text-sm">
+                                ยังไม่มีบันทึกกิจกรรมในระบบ
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ตารางรายชื่อลูกค้าล่าสุด -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800 flex items-center">
+                                <i class="fa-solid fa-address-book text-fire-600 mr-2"></i> รายชื่อลูกค้าล่าสุด
+                            </h3>
+                            <span class="text-xs text-gray-400">ข้อมูลทั้งหมดในระบบ</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold text-xs">
+                                        <th class="p-4">บริษัท / ชื่อลูกค้า</th>
+                                        <th class="p-4">ผู้ติดต่อ</th>
+                                        <th class="p-4">เบอร์โทรศัพท์</th>
+                                        <th class="p-4">วันที่เพิ่มข้อมูล</th>
+                                        <th class="p-4">สถานะ</th>
+                                        <th class="p-4 text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-customer-table" class="divide-y divide-gray-100 text-gray-700">
+                                    <tr>
+                                        <td colspan="6" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลลูกค้าในระบบ</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. หน้า "ติดตามงานขาย (Deals)" -->
+                <div id="view-deals" class="space-y-6 hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">ติดตามงานขาย (Pipeline) & วิเคราะห์สถานะ</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">จัดการและวิเคราะห์สถานะดีลของลูกค้าแต่ละราย</p>
+                        </div>
+                        <!-- ตัวเลือกช่วงระยะเวลา วัน / เดือน / ปี -->
+                        <div class="flex items-center space-x-2 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm">
+                            <button onclick="changeDealFilter('day')" id="filter-day-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-fire-600 text-white transition-all">รายวัน</button>
+                            <button onclick="changeDealFilter('month')" id="filter-month-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all">รายเดือน</button>
+                            <button onclick="changeDealFilter('year')" id="filter-year-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all">รายปี</button>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard สรุปผลวิเคราะห์สถานะและเหตุผลการขาย -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-xs text-gray-500 font-medium">ดีลทั้งหมดในช่วงเวลานี้</span>
+                            <h3 id="analytics-total-deals" class="text-2xl font-bold text-gray-800 mt-1">0</h3>
+                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-chart-pie mr-1"></i> อ้างอิงตามตัวกรองเวลา</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-xs text-blue-600 font-medium">กำลังดำเนินการเสนอราคา</span>
+                            <h3 id="analytics-active-deals" class="text-2xl font-bold text-blue-700 mt-1">0</h3>
+                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-clock mr-1"></i> รอพิจารณา / เจรจา</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-xs text-green-600 font-medium">อัตราปิดการขายสำเร็จ (Win Rate)</span>
+                            <h3 id="analytics-win-rate" class="text-2xl font-bold text-green-700 mt-1">0%</h3>
+                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-circle-check mr-1"></i> ปิดสำเร็จ / ทั้งหมด</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <span class="text-xs text-red-600 font-medium">ดีลที่ไม่สำเร็จ / ยกเลิก</span>
+                            <h3 id="analytics-lost-deals" class="text-2xl font-bold text-red-700 mt-1">0</h3>
+                            <p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-circle-xmark mr-1"></i> เหตุผล: งบไม่ผ่าน/คู่แข่ง</p>
+                        </div>
+                    </div>
+
+                    <!-- Kanban Board -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <!-- Column 1: ติดต่อใหม่ -->
+                        <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
+                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+                                <span class="font-bold text-sm text-gray-700">ติดต่อใหม่ (New)</span>
+                                <span id="new-lead-count" class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-new-column" class="space-y-3 min-h-[300px]">
+                                <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: เสนอราคา / รอพิจารณา -->
+                        <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
+                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+                                <span class="font-bold text-sm text-blue-700">เสนอราคา / รอพิจารณา</span>
+                                <span id="quoted-count" class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-quoted-column" class="space-y-3 min-h-[300px]">
+                                <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: เจรจา -->
+                        <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
+                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+                                <span class="font-bold text-sm text-amber-700">เจรจา</span>
+                                <span id="nego-count" class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-nego-column" class="space-y-3 min-h-[300px]">
+                                <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
+                            </div>
+                        </div>
+
+                        <!-- Column 4: ปิดการขาย -->
+                        <div class="bg-gray-100/80 rounded-2xl p-4 border border-gray-200">
+                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+                                <span class="font-bold text-sm text-green-700">ปิดการขายสำเร็จ</span>
+                                <span id="won-count" class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-won-column" class="space-y-3 min-h-[300px]">
+                                <div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. หน้า "แจ้งเตือนซ่อมบำรุง" -->
+                <div id="view-maintenance" class="space-y-6 hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">ปฏิทินตารางนัดหมาย (Appointment Calendar)</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">ปฏิทินแสดงวันนัดหมายติดตามลูกค้าและซ่อมบำรุงประจำปี</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- นำช่องค้นหาในหน้าตารางนัดหมายออกตามคำขอ -->
+                            <div class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
+                                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                <span id="calendar-month-year-label" class="text-sm font-bold text-gray-800 px-2 min-w-[140px] text-center">มกราคม 2569</span>
+                                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ส่วนแสดงปฏิทิน Grid -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <!-- หัววันในสัปดาห์ -->
+                        <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-200 text-center text-xs font-semibold text-gray-500 py-3">
+                            <div>อาทิตย์</div>
+                            <div>จันทร์</div>
+                            <div>อังคาร</div>
+                            <div>พุธ</div>
+                            <div>พฤหัสบดี</div>
+                            <div>ศุกร์</div>
+                            <div>เสาร์</div>
+                        </div>
+                        <!-- ช่องตารางวันในเดือน -->
+                        <div id="calendar-grid" class="grid grid-cols-7 auto-rows-fr bg-gray-200 gap-px">
+                            <!-- จะถูกสร้างผ่าน JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal ฟอร์มเพิ่ม/แก้ไขลูกค้า (Slide-over) -->
+    <div id="customer-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeCustomerModal()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-2xl bg-white shadow-2xl flex flex-col">
+                <!-- Header Modal -->
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <h3 id="modal-title" class="font-bold text-lg text-gray-800 flex items-center">
+                        <i class="fa-solid fa-user-plus text-fire-600 mr-2"></i> เพิ่มข้อมูลลูกค้าใหม่
+                    </h3>
+                    <button onclick="closeCustomerModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- ฟอร์มกรอกข้อมูล 6 หมวด -->
+                <div class="flex-1 overflow-y-auto p-6">
+                    <form id="new-customer-form" class="space-y-8">
+                        
+                        <!-- 1. ข้อมูลการติดต่อ -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">1. ข้อมูลการติดต่อ</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">บริษัท/ชื่อลูกค้า *</label>
+                                    <input type="text" id="cust-company" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ชื่อผู้ติดต่อ *</label>
+                                    <input type="text" id="cust-contact" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">อีเมล์ (ถ้ามี)</label>
+                                    <input type="email" id="cust-email" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ตำแหน่ง (ถ้ามี)</label>
+                                    <input type="text" id="cust-position" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Line (ถ้ามี)</label>
+                                    <input type="text" id="cust-line" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">เบอร์ติดต่อ *</label>
+                                    <input type="tel" id="cust-phone" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">วันที่ติดต่อลูกค้า *</label>
+                                    <input type="date" id="cust-date-contacted" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. ที่อยู่สำนักงาน -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">2. ที่อยู่สำนักงาน</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ที่อยู่/เลขที่/ถนน</label>
+                                    <input type="text" id="cust-address" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">จังหวัด</label>
+                                    <input type="text" id="cust-province" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">อำเภอ/เขต</label>
+                                    <input type="text" id="cust-district" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ตำบล/แขวง</label>
+                                    <input type="text" id="cust-subdistrict" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">รหัสไปรษณีย์</label>
+                                    <input type="text" id="cust-zipcode" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. ประเภทธุรกิจ -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">3. ประเภทธุรกิจ</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">กลุ่มธุรกิจ</label>
+                                    <input type="text" id="cust-biz-group" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ทำธุรกิจอะไร/ผลิตหรือขายอะไร</label>
+                                    <input type="text" id="cust-biz-type" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ขนาดธุรกิจ</label>
+                                    <select id="cust-biz-size" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                        <option value="เล็ก">เล็ก</option>
+                                        <option value="กลาง">กลาง</option>
+                                        <option value="ใหญ่">ใหญ่</option>
+                                        <option value="รายย่อยเจ้าเดียว">รายย่อยเจ้าเดียว</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ทุนจดทะเบียน</label>
+                                    <input type="text" id="cust-capital" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. ที่มาและความต้องการ -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">4. ที่มาและความต้องการ</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ลูกค้าจะนำไปใช้ที่ไหน/งานที่ต้องการ</label>
+                                    <input type="text" id="cust-usage-place" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ช่องทางที่รู้จักเรา</label>
+                                    <input type="text" id="cust-channel" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">รายละเอียดความต้องการ</label>
+                                    <textarea id="cust-details" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ผู้แนะนำ</label>
+                                    <input type="text" id="cust-referrer" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">สินค้าของเราตัวไหน</label>
+                                    <input type="text" id="cust-product-interest" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">งบประมาณ / กำหนดใช้งาน</label>
+                                    <input type="text" id="cust-budget" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. สถานะและแผนติดตาม -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">5. สถานะและแผนติดตาม</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">สถานะดีล (Deal Stage) *</label>
+                                    <select id="cust-deal-stage" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                        <option value="รับข้อมูล">รับข้อมูล / ติดต่อใหม่</option>
+                                        <option value="ดูความต้องการ">ดูความต้องการ / สำรวจพื้นที่</option>
+                                        <option value="เสนอราคา">เสนอราคา</option>
+                                        <option value="รอพิจารณา">รอพิจารณา</option>
+                                        <option value="เจรจา">เจรจาต่อรอง</option>
+                                        <option value="ปิดการขาย">ปิดการขายสำเร็จ</option>
+                                        <option value="ไม่สำเร็จ">ไม่สำเร็จ / ยกเลิก</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ความสำคัญ (Priority)</label>
+                                    <select id="cust-priority" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                        <option value="ปกติ">ปกติ</option>
+                                        <option value="สำคัญ">สำคัญ</option>
+                                        <option value="ด่วนที่สุด">ด่วนที่สุด</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ผู้รับผิดชอบ (Owner)</label>
+                                    <input type="text" id="cust-owner" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-600 cursor-not-allowed focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">วันที่นัดหมายครั้งต่อไป *</label>
+                                    <input type="date" id="cust-next-appt" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">แผนติดตาม / เป้าหมายต่อไป</label>
+                                    <input type="text" id="cust-next-goal" placeholder="เช่น ส่งใบเสนอราคาชุดถังดับเพลิง CO2 เพิ่มเติม" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. ประเมินความสนใจของลูกค้า -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-fire-600 uppercase tracking-wider border-b border-fire-100 pb-2">6. ประเมินความสนใจของลูกค้า</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ระดับความสนใจ</label>
+                                    <select id="cust-interest-level" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                        <option value="สนใจเบื้องต้น">สนใจเบื้องต้น</option>
+                                        <option value="สนใจมากพร้อมซื้อ">สนใจมากพร้อมซื้อ</option>
+                                        <option value="รอตัดสินใจงบประมาณ">รอตัดสินใจงบประมาณ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ข้อมูลเพิ่มเติม / หมายเหตุ</label>
+                                    <input type="text" id="cust-extra-notes" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="pt-4 border-t border-gray-100 flex justify-end space-x-3">
+                            <button type="button" onclick="closeCustomerModal()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">ยกเลิก</button>
+                            <button type="button" onclick="submitCustomerForm()" class="px-6 py-2.5 rounded-xl bg-fire-600 text-white font-semibold text-sm hover:bg-fire-700 shadow-lg shadow-fire-600/30 transition-all">บันทึกข้อมูล</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal แสดงรายละเอียดนัดหมายประจำวัน -->
+    <div id="appointment-detail-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeAppointmentDetailModal()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-lg bg-white shadow-2xl flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <h3 class="font-bold text-lg text-gray-800 flex items-center">
+                        <i class="fa-solid fa-calendar-day text-fire-600 mr-2"></i> รายการนัดหมายวันที่: <span id="modal-appt-date" class="ml-1 text-fire-600"></span>
+                    </h3>
+                    <button onclick="closeAppointmentDetailModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="modal-appt-list" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <!-- รายการนัดหมายจะแสดงที่นี่ -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript สำหรับควบคุมระบบ CRM และ Authentication -->
+    <script>
+        // หน่วยความจำเก็บข้อมูลลูกค้าทั้งหมดและข้อมูลผู้ใช้ระบบ (โหลดจาก localStorage)
+        let customerRecordsList = JSON.parse(localStorage.getItem('firesafe_customers')) || [];
+        let editingIndex = null;
+        let currentCalendarDate = new Date();
+        let registeredUsers = JSON.parse(localStorage.getItem('firesafe_users')) || [
+            { email: 'sales@firesafe.com', password: '123456', fullname: 'สมชาย ยอดขาย', role: 'พนักงานขาย (Sales)' },
+            { email: 'admin@firesafe.com', password: '123456', fullname: 'วิชัย ผู้จัดการ', role: 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' }
+        ];
+        let currentUser = JSON.parse(localStorage.getItem('firesafe_current_user')) || null;
+        let authMode = 'login'; // 'login', 'register' หรือ 'forgot'
+
+        // ฟังก์ชันบันทึกข้อมูลลูกค้าลง localStorage
+        function saveCustomersToStorage() {
+            localStorage.setItem('firesafe_customers', JSON.stringify(customerRecordsList));
+        }
+
+        window.switchAuthTab = function(mode) {
+            authMode = mode;
+            const loginBtn = document.getElementById('tab-login-btn');
+            const regBtn = document.getElementById('tab-register-btn');
+            const forgotBtn = document.getElementById('tab-forgot-btn');
+            const regFields = document.getElementById('register-fields');
+            const emailContainer = document.getElementById('email-field-container');
+            const passContainer = document.getElementById('password-field-container');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const subtitle = document.getElementById('auth-subtitle');
+            const passLabel = document.getElementById('password-label');
+
+            // Reset classes
+            loginBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all';
+            regBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all';
+            forgotBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all';
+
+            if (mode === 'login') {
+                loginBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all';
+                regFields.classList.add('hidden');
+                emailContainer.classList.remove('hidden');
+                passContainer.classList.remove('hidden');
+                passLabel.innerText = 'รหัสผ่าน';
+                document.getElementById('auth-password').placeholder = '••••••••';
+                submitBtn.innerText = 'เข้าสู่ระบบ';
+                subtitle.innerText = 'กรุณาเข้าสู่ระบบเพื่อใช้งาน';
+            } else if (mode === 'register') {
+                regBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all';
+                regFields.classList.remove('hidden');
+                emailContainer.classList.remove('hidden');
+                passContainer.classList.remove('hidden');
+                passLabel.innerText = 'รหัสผ่าน';
+                document.getElementById('auth-password').placeholder = '••••••••';
+                submitBtn.innerText = 'สมัครสมาชิกและเข้าสู่ระบบ';
+                subtitle.innerText = 'สร้างบัญชีผู้ใช้งานใหม่ในระบบ CRM';
+            } else if (mode === 'forgot') {
+                forgotBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all';
+                regFields.classList.add('hidden');
+                emailContainer.classList.remove('hidden');
+                passContainer.classList.remove('hidden');
+                passLabel.innerText = 'รหัสผ่านใหม่ (New Password)';
+                document.getElementById('auth-password').placeholder = 'กรอกรหัสผ่านใหม่ที่ต้องการ';
+                submitBtn.innerText = 'รีเซ็ตรหัสผ่าน';
+                subtitle.innerText = 'กรอกอีเมล์และตั้งรหัสผ่านใหม่ของคุณ';
+            }
+        };
+
+        window.handleAuthSubmit = function(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+
+            if (authMode === 'register') {
+                const fullname = document.getElementById('auth-fullname').value.trim();
+                const role = document.getElementById('auth-role').value;
+
+                if (!fullname) {
+                    showToast('กรุณากรอกชื่อ-นามสกุล', 'bg-red-500');
+                    return;
+                }
+
+                const existing = registeredUsers.find(u => u.email === email);
+                if (existing) {
+                    showToast('อีเมล์นี้มีผู้ใช้งานในระบบแล้ว', 'bg-red-500');
+                    return;
+                }
+
+                const newUser = { email, password, fullname, role };
+                registeredUsers.push(newUser);
+                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+                currentUser = newUser;
+                localStorage.setItem('firesafe_current_user', JSON.stringify(currentUser));
+                showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ');
+            } else if (authMode === 'forgot') {
+                const user = registeredUsers.find(u => u.email === email);
+                if (!user) {
+                    showToast('ไม่พบอีเมล์นี้ในระบบ', 'bg-red-500');
+                    return;
+                }
+                user.password = password;
+                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+                showToast('รีเซ็ตรหัสผ่านสำเร็จ! กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
+                switchAuthTab('login');
+                return;
+            } else {
+                const user = registeredUsers.find(u => u.email === email && u.password === password);
+                if (!user) {
+                    showToast('อีเมล์หรือรหัสผ่านไม่ถูกต้อง', 'bg-red-500');
+                    return;
+                }
+                currentUser = user;
+                localStorage.setItem('firesafe_current_user', JSON.stringify(currentUser));
+                showToast(`ยินดีต้อนรับกลับมา, ${user.fullname}`);
+            }
+
+            // อัปเดตข้อมูลผู้ใช้ใน Sidebar
+            updateUserInterface();
+
+            // ซ่อนหน้าจอ Auth และแสดง Main App
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-app-container').classList.remove('hidden');
+        };
+
+        window.logoutSystem = function() {
+            currentUser = null;
+            localStorage.removeItem('firesafe_current_user');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('main-app-container').classList.add('hidden');
+            document.getElementById('auth-form').reset();
+            switchAuthTab('login');
+            showToast('ออกจากระบบเรียบร้อยแล้ว');
+        };
+
+        function updateUserInterface() {
+            if (!currentUser) return;
+            const nameEl = document.getElementById('user-display-name');
+            const roleEl = document.getElementById('user-display-role');
+            const avatarEl = document.getElementById('user-avatar-initial');
+
+            if (nameEl) nameEl.innerText = currentUser.fullname;
+            if (roleEl) roleEl.innerText = currentUser.role;
+            if (avatarEl) {
+                avatarEl.innerText = currentUser.fullname.substring(0, 2);
+            }
+        }
+
+        window.switchView = function(viewName) {
+            const views = ['dashboard', 'deals', 'maintenance'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                const nav = document.getElementById(`nav-${v}`);
+                if (el) el.classList.add('hidden');
+                if (nav) {
+                    nav.classList.remove('bg-fire-600', 'text-white', 'shadow-sm');
+                    nav.classList.add('hover:bg-slate-800', 'text-slate-300');
+                }
+            });
+
+            const targetView = document.getElementById(`view-${viewName}`);
+            const targetNav = document.getElementById(`nav-${viewName}`);
+            if (targetView) targetView.classList.remove('hidden');
+            if (targetNav) {
+                targetNav.classList.remove('hover:bg-slate-800', 'text-slate-300');
+                targetNav.classList.add('bg-fire-600', 'text-white', 'shadow-sm');
+            }
+
+            if (viewName === 'maintenance') {
+                renderCalendar();
+            }
+        };
+
+        window.openCustomerModal = function(index = null) {
+            editingIndex = index;
+            const modal = document.getElementById('customer-modal');
+            const modalTitle = document.getElementById('modal-title');
+            
+            if (index !== null && customerRecordsList[index]) {
+                modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-fire-600 mr-2"></i> แก้ไขข้อมูลลูกค้า`;
+                const cust = customerRecordsList[index];
+                
+                document.getElementById('cust-company').value = cust.companyName || '';
+                document.getElementById('cust-contact').value = cust.contactName || '';
+                document.getElementById('cust-email').value = cust.email || '';
+                document.getElementById('cust-position').value = cust.position || '';
+                document.getElementById('cust-line').value = cust.line || '';
+                document.getElementById('cust-phone').value = cust.contactPhone || '';
+                document.getElementById('cust-date-contacted').value = cust.dateContacted || '';
+                document.getElementById('cust-address').value = cust.address || '';
+                document.getElementById('cust-province').value = cust.province || '';
+                document.getElementById('cust-district').value = cust.district || '';
+                document.getElementById('cust-subdistrict').value = cust.subdistrict || '';
+                document.getElementById('cust-zipcode').value = cust.zipcode || '';
+                document.getElementById('cust-biz-group').value = cust.bizGroup || '';
+                document.getElementById('cust-biz-type').value = cust.bizType || '';
+                document.getElementById('cust-biz-size').value = cust.bizSize || 'เล็ก';
+                document.getElementById('cust-capital').value = cust.capital || '';
+                document.getElementById('cust-usage-place').value = cust.usagePlace || '';
+                document.getElementById('cust-channel').value = cust.channel || '';
+                document.getElementById('cust-details').value = cust.details || '';
+                document.getElementById('cust-referrer').value = cust.referrer || '';
+                document.getElementById('cust-product-interest').value = cust.productInterest || '';
+                document.getElementById('cust-budget').value = cust.budget || '';
+                document.getElementById('cust-deal-stage').value = cust.dealStage || 'รับข้อมูล';
+                document.getElementById('cust-priority').value = cust.priority || 'ปกติ';
+                document.getElementById('cust-owner').value = cust.owner || (currentUser ? currentUser.fullname : 'พนักงาน');
+                document.getElementById('cust-next-appt').value = cust.nextAppt || '';
+                document.getElementById('cust-next-goal').value = cust.nextGoal || '';
+                document.getElementById('cust-interest-level').value = cust.interestLevel || 'สนใจเบื้องต้น';
+                document.getElementById('cust-extra-notes').value = cust.extraNotes || '';
+            } else {
+                modalTitle.innerHTML = `<i class="fa-solid fa-user-plus text-fire-600 mr-2"></i> เพิ่มข้อมูลลูกค้าใหม่`;
+                document.getElementById('new-customer-form').reset();
+                const todayStr = new Date().toISOString().split('T')[0];
+                const dateInput = document.getElementById('cust-date-contacted');
+                if(dateInput) dateInput.value = todayStr;
+                // กำหนดชื่อผู้รับผิดชอบตามบัญชีที่ล็อกอินอยู่ปัจจุบัน
+                const ownerInput = document.getElementById('cust-owner');
+                if(ownerInput && currentUser) {
+                    ownerInput.value = currentUser.fullname;
+                }
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeCustomerModal = function() {
+            document.getElementById('customer-modal').classList.add('hidden');
+            editingIndex = null;
+        };
+
+        window.submitCustomerForm = function() {
+            const companyName = document.getElementById('cust-company').value.trim();
+            const contactName = document.getElementById('cust-contact').value.trim();
+            const contactPhone = document.getElementById('cust-phone').value.trim();
+            const nextApptDate = document.getElementById('cust-next-appt').value;
+
+            if (!companyName || !contactName || !contactPhone || !nextApptDate) {
+                alert('กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน');
+                return;
+            }
+
+            const stage = document.getElementById('cust-deal-stage').value;
+            const nextGoal = document.getElementById('cust-next-goal').value;
+            const owner = document.getElementById('cust-owner').value;
+
+            const customerData = {
+                companyName: companyName,
+                contactName: contactName,
+                email: document.getElementById('cust-email').value,
+                position: document.getElementById('cust-position').value,
+                line: document.getElementById('cust-line').value,
+                contactPhone: contactPhone,
+                dateContacted: document.getElementById('cust-date-contacted').value,
+                address: document.getElementById('cust-address').value,
+                province: document.getElementById('cust-province').value,
+                district: document.getElementById('cust-district').value,
+                subdistrict: document.getElementById('cust-subdistrict').value,
+                zipcode: document.getElementById('cust-zipcode').value,
+                bizGroup: document.getElementById('cust-biz-group').value,
+                bizType: document.getElementById('cust-biz-type').value,
+                bizSize: document.getElementById('cust-biz-size').value,
+                capital: document.getElementById('cust-capital').value,
+                usagePlace: document.getElementById('cust-usage-place').value,
+                channel: document.getElementById('cust-channel').value,
+                details: document.getElementById('cust-details').value,
+                referrer: document.getElementById('cust-referrer').value,
+                productInterest: document.getElementById('cust-product-interest').value,
+                budget: document.getElementById('cust-budget').value,
+                dealStage: stage,
+                priority: document.getElementById('cust-priority').value,
+                owner: owner,
+                nextAppt: nextApptDate,
+                nextGoal: nextGoal,
+                interestLevel: document.getElementById('cust-interest-level').value,
+                extraNotes: document.getElementById('cust-extra-notes').value,
+                dateAdded: new Date().toLocaleDateString('th-TH'),
+                lastUpdated: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            if (editingIndex !== null && editingIndex >= 0) {
+                customerData.activityAction = 'อัปเดตข้อมูลและแผนติดตาม';
+                customerRecordsList[editingIndex] = customerData;
+            } else {
+                customerData.activityAction = 'เพิ่มลูกค้าใหม่';
+                customerRecordsList.push(customerData);
+            }
+
+            saveCustomersToStorage();
+            closeCustomerModal();
+            renderCustomerTable();
+            renderKanbanBoard();
+            updateDashboardMetrics();
+            renderCalendar();
+            showToast('บันทึกข้อมูลเรียบร้อยแล้ว');
+        };
+
+        window.deleteCustomer = function(index) {
+            if (confirm('คุณต้องการลบข้อมูลลูกค้าระเบียนนี้ใช่หรือไม่?')) {
+                customerRecordsList.splice(index, 1);
+                saveCustomersToStorage();
+                renderCustomerTable();
+                renderKanbanBoard();
+                updateDashboardMetrics();
+                renderCalendar();
+                showToast('ลบข้อมูลสำเร็จ', 'bg-red-500');
+            }
+        };
+
+        window.changeDealFilter = function(period) {
+            ['day', 'month', 'year'].forEach(p => {
+                const btn = document.getElementById(`filter-${p}-btn`);
+                if (btn) {
+                    if (p === period) {
+                        btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-fire-600 text-white transition-all';
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all';
+                    }
+                }
+            });
+            showToast(`เปลี่ยนมุมมองข้อมูลเป็นแบบ: ${period === 'day' ? 'รายวัน' : (period === 'month' ? 'รายเดือน' : 'รายปี')}`);
+            renderKanbanBoard();
+        };
+
+        window.toggleNotificationDropdown = function() {
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown) dropdown.classList.toggle('hidden');
+        };
+
+        window.changeCalendarMonth = function(direction) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+            renderCalendar();
+        };
+
+        window.renderCalendar = function() {
+            const grid = document.getElementById('calendar-grid');
+            const label = document.getElementById('calendar-month-year-label');
+            if (!grid || !label) return;
+
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+
+            const thaiMonths = [
+                'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+            ];
+            label.innerText = `${thaiMonths[month]} ${year + 543}`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            let html = '';
+            
+            // ช่องว่างของวันในสัปดาห์ก่อนหน้า
+            for (let i = 0; i < firstDayIndex; i++) {
+                html += `<div class="bg-gray-50 min-h-[100px] p-2 opacity-40"></div>`;
+            }
+
+            // วนลูปสร้างวันในเดือน
+            for (let day = 1; day <= totalDays; day++) {
+                const formattedMonth = String(month + 1).padStart(2, '0');
+                const formattedDay = String(day).padStart(2, '0');
+                const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+                const apptsOnThisDay = customerRecordsList.filter(cust => cust.nextAppt === dateStr);
+
+                const isToday = new Date().toISOString().split('T')[0] === dateStr;
+                const todayBadgeClass = isToday ? 'bg-fire-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold' : 'text-gray-700 font-semibold';
+
+                let apptsHtml = '';
+                apptsOnThisDay.forEach((cust) => {
+                    apptsHtml += `
+                        <div onclick="openAppointmentDetail('${dateStr}')" class="bg-fire-50 hover:bg-fire-100 border border-fire-200 text-fire-800 text-[10px] p-1.5 rounded-lg truncate font-medium cursor-pointer transition-all flex items-center justify-between">
+                            <span class="truncate"><i class="fa-solid fa-circle text-[6px] text-fire-600 mr-1"></i>${cust.companyName}</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="bg-white min-h-[110px] p-2 flex flex-col justify-between hover:bg-gray-50/80 transition-all ${isToday ? 'ring-2 ring-fire-500/50 bg-fire-50/20' : ''}">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs ${todayBadgeClass}">${day}</span>
+                            ${apptsOnThisDay.length > 0 ? `<span class="text-[10px] bg-fire-600 text-white px-1.5 py-0.2 rounded-full font-bold">${apptsOnThisDay.length}</span>` : ''}
+                        </div>
+                        <div class="flex-1 mt-1.5 space-y-1 overflow-y-auto max-h-[75px]">
+                            ${apptsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+        };
+
+        window.openAppointmentDetail = function(dateStr) {
+            const modal = document.getElementById('appointment-detail-modal');
+            const dateLabel = document.getElementById('modal-appt-date');
+            const listContainer = document.getElementById('modal-appt-list');
+
+            dateLabel.innerText = dateStr;
+            const appts = customerRecordsList.filter(cust => cust.nextAppt === dateStr);
+
+            let html = '';
+            appts.forEach((cust) => {
+                html += `
+                    <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-4">
+                        <!-- หัวข้อ: ข้อมูลการติดต่อ -->
+                        <div>
+                            <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">1. ข้อมูลการติดต่อ</h4>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div><span class="text-gray-400">บริษัท/ลูกค้า:</span> <span class="font-semibold text-gray-800">${cust.companyName || '-'}</span></div>
+                                <div><span class="text-gray-400">ผู้ติดต่อ:</span> <span class="font-semibold text-gray-800">${cust.contactName || '-'} (${cust.contactPhone || '-'})</span></div>
+                                <div><span class="text-gray-400">อีเมล์:</span> <span class="text-gray-700">${cust.email || '-'}</span></div>
+                                <div><span class="text-gray-400">ตำแหน่ง:</span> <span class="text-gray-700">${cust.position || '-'}</span></div>
+                                <div><span class="text-gray-400">Line:</span> <span class="text-gray-700">${cust.line || '-'}</span></div>
+                                <div><span class="text-gray-400">วันที่ติดต่อ:</span> <span class="text-gray-700">${cust.dateContacted || '-'}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- หัวข้อ: ที่อยู่สำนักงาน -->
+                        <div>
+                            <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">2. ที่อยู่สำนักงาน</h4>
+                            <p class="text-xs text-gray-700">${cust.address || '-'} ต.${cust.subdistrict || '-'} อ.${cust.district || '-'} จ.${cust.province || '-'} ${cust.zipcode || '-'}</p>
+                        </div>
+
+                        <!-- หัวข้อ: ประเภทธุรกิจ -->
+                        <div>
+                            <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">3. ประเภทธุรกิจ</h4>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div><span class="text-gray-400">กลุ่มธุรกิจ:</span> <span class="text-gray-700">${cust.bizGroup || '-'}</span></div>
+                                <div><span class="text-gray-400">ทำธุรกิจอะไร:</span> <span class="text-gray-700">${cust.bizType || '-'}</span></div>
+                                <div><span class="text-gray-400">ขนาดธุรกิจ:</span> <span class="text-gray-700">${cust.bizSize || '-'}</span></div>
+                                <div><span class="text-gray-400">ทุนจดทะเบียน:</span> <span class="text-gray-700">${cust.capital || '-'}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- หัวข้อ: ที่มาและความต้องการ -->
+                        <div>
+                            <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">4. ที่มาและความต้องการ</h4>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="col-span-2"><span class="text-gray-400">สถานที่ใช้งาน/งาน:</span> <span class="text-gray-700">${cust.usagePlace || '-'}</span></div>
+                                <div class="col-span-2"><span class="text-gray-400">รายละเอียดความต้องการ:</span> <span class="text-gray-700">${cust.details || '-'}</span></div>
+                                <div><span class="text-gray-400">ช่องทางที่รู้จัก:</span> <span class="text-gray-700">${cust.channel || '-'}</span></div>
+                                <div><span class="text-gray-400">ผู้แนะนำ:</span> <span class="text-gray-700">${cust.referrer || '-'}</span></div>
+                                <div><span class="text-gray-400">สินค้าที่สนใจ:</span> <span class="text-gray-700">${cust.productInterest || '-'}</span></div>
+                                <div><span class="text-gray-400">งบประมาณ:</span> <span class="text-gray-700">${cust.budget || '-'}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- หัวข้อ: สถานะและแผนติดตาม -->
+                        <div>
+                            <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">5. สถานะและแผนติดตาม</h4>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div><span class="text-gray-400">สถานะ:</span> <span class="font-semibold text-fire-600">${cust.dealStage || '-'}</span></div>
+                                <div><span class="text-gray-400">ความสำคัญ:</span> <span class="text-gray-700">${cust.priority || '-'}</span></div>
+                                <div><span class="text-gray-400">ผู้รับผิดชอบ:</span> <span class="text-gray-700">${cust.owner || '-'}</span></div>
+                                <div><span class="text-gray-400">นัดหมายถัดไป:</span> <span class="font-semibold text-blue-600">${cust.nextAppt || '-'}</span></div>
+                                <div class="col-span-2"><span class="text-gray-400">เป้าหมายต่อไป:</span> <span class="text-gray-700">${cust.nextGoal || '-'}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- หัวข้อ: ประเมินความสนใจ -->
+                        <div>
+                            <h4 class="text-xs font-bold text-fire-600 uppercase tracking-wider mb-2 pb-1 border-b border-fire-100">6. ประเมินความสนใจของลูกค้า</h4>
+                            <div class="grid grid-cols-1 gap-2 text-xs">
+                                <div><span class="text-gray-400">ระดับความสนใจ:</span> <span class="text-gray-700">${cust.interestLevel || '-'}</span></div>
+                                <div><span class="text-gray-400">ข้อมูลเพิ่มเติม:</span> <span class="text-gray-700">${cust.extraNotes || '-'}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html || '<p class="text-xs text-gray-400 text-center py-4">ไม่มีรายการนัดหมายในวันนี้</p>';
+            modal.classList.remove('hidden');
+        };
+
+        window.closeAppointmentDetailModal = function() {
+            document.getElementById('appointment-detail-modal').classList.add('hidden');
+        };
+
+        function showToast(message, bgColor = 'bg-slate-900') {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'fixed bottom-6 right-6 z-50 flex flex-col space-y-2';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-xl text-xs font-medium flex items-center space-x-2 transition-all transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>${message}</span>`;
+            
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function renderCustomerTable() {
+            const tbody = document.getElementById('dashboard-customer-table');
+            if (!tbody) return;
+
+            if (customerRecordsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลลูกค้าในระบบ</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            customerRecordsList.forEach((cust, index) => {
+                html += `
+                    <tr class="hover:bg-gray-50 transition-all">
+                        <td class="p-4 font-semibold text-gray-800">${cust.companyName}</td>
+                        <td class="p-4">${cust.contactName}</td>
+                        <td class="p-4">${cust.contactPhone}</td>
+                        <td class="p-4 text-gray-500">${cust.dateAdded}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fire-50 text-fire-700">${cust.dealStage}</span></td>
+                        <td class="p-4 text-center space-x-2">
+                            <button onclick="openCustomerModal(${index})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteCustomer(${index})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบ"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderAppointmentTable() {
+            const tbody = document.getElementById('appointment-table-body');
+            if (!tbody) return;
+
+            if (customerRecordsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400">ยังไม่มีรายการนัดหมายในระบบ</td></tr>`;
+                return;
+            }
+
+            // เรียงลำดับตามวันที่นัดหมายครั้งต่อไป (จากใกล้ไปไกล)
+            const sortedList = [...customerRecordsList].sort((a, b) => new Date(a.nextAppt) - new Date(b.nextAppt));
+
+            let html = '';
+            sortedList.forEach((cust) => {
+                const originalIndex = customerRecordsList.indexOf(cust);
+                const todayStr = new Date().toISOString().split('T')[0];
+                const isOverdue = cust.nextAppt < todayStr;
+                const isToday = cust.nextAppt === todayStr;
+                const badgeStyle = isOverdue ? 'bg-red-100 text-red-700' : (isToday ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
+
+                html += `
+                    <tr class="hover:bg-gray-50 transition-all">
+                        <td class="p-4 font-semibold text-gray-800">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeStyle}">${cust.nextAppt || '-'}</span>
+                        </td>
+                        <td class="p-4 font-medium text-gray-800">${cust.companyName}</td>
+                        <td class="p-4 text-gray-600">${cust.contactName} (${cust.contactPhone})</td>
+                        <td class="p-4 text-gray-600">${cust.nextGoal || '-'}</td>
+                        <td class="p-4 text-gray-600"><i class="fa-solid fa-user-tie text-fire-600 mr-1"></i>${cust.owner}</td>
+                        <td class="p-4 text-center space-x-2">
+                            <button onclick="openCustomerModal(${originalIndex})" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-all" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteCustomer(${originalIndex})" class="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-all" title="ลบ"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderKanbanBoard() {
+            const newCol = document.getElementById('kanban-new-column');
+            const quotedCol = document.getElementById('kanban-quoted-column');
+            const negoCol = document.getElementById('kanban-nego-column');
+            const wonCol = document.getElementById('kanban-won-column');
+
+            if (!newCol) return;
+
+            let newHtml = '', quotedHtml = '', negoHtml = '', wonHtml = '';
+            let newCount = 0, quotedCount = 0, negoCount = 0, wonCount = 0;
+            let activeDealsCount = 0;
+            let wonDealsCount = 0;
+            let lostDealsCount = 0;
+
+            customerRecordsList.forEach((cust, index) => {
+                if (cust.dealStage === 'ไม่สำเร็จ') {
+                    lostDealsCount++;
+                    return;
+                }
+
+                if (cust.dealStage === 'เสนอราคา' || cust.dealStage === 'รอพิจารณา' || cust.dealStage === 'เจรจา') {
+                    activeDealsCount++;
+                }
+                if (cust.dealStage === 'ปิดการขาย') {
+                    wonDealsCount++;
+                }
+
+                const cardHtml = `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-gray-800 text-sm">${cust.companyName}</h4>
+                            <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">${cust.dateAdded}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mb-1"><i class="fa-solid fa-user mr-1 text-gray-400"></i>ผู้ติดต่อ: ${cust.contactName} (${cust.contactPhone})</p>
+                        <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-bullseye mr-1 text-gray-400"></i>เป้าหมาย: ${cust.nextGoal || '-'}</p>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-100 text-xs text-gray-500">
+                            <span><i class="fa-solid fa-user-tie mr-1 text-fire-600"></i>${cust.owner}</span>
+                            <div class="space-x-1">
+                                <button onclick="openCustomerModal(${index})" class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-all" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteCustomer(${index})" class="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-all" title="ลบ"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (cust.dealStage === 'รับข้อมูล' || cust.dealStage === 'ดูความต้องการ') {
+                    newHtml += cardHtml; newCount++;
+                } else if (cust.dealStage === 'เสนอราคา' || cust.dealStage === 'รอพิจารณา') {
+                    quotedHtml += cardHtml; quotedCount++;
+                } else if (cust.dealStage === 'เจรจา') {
+                    negoHtml += cardHtml; negoCount++;
+                } else if (cust.dealStage === 'ปิดการขาย') {
+                    wonHtml += cardHtml; wonCount++;
+                }
+            });
+
+            newCol.innerHTML = newHtml || '<div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>';
+            quotedCol.innerHTML = quotedHtml || '<div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>';
+            negoCol.innerHTML = negoHtml || '<div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>';
+            wonCol.innerHTML = wonHtml || '<div class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</div>';
+
+            document.getElementById('new-lead-count').innerText = newCount;
+            document.getElementById('quoted-count').innerText = quotedCount;
+            document.getElementById('nego-count').innerText = negoCount;
+            document.getElementById('won-count').innerText = wonCount;
+
+            const totalDeals = customerRecordsList.length;
+            document.getElementById('analytics-total-deals').innerText = totalDeals;
+            document.getElementById('analytics-active-deals').innerText = activeDealsCount;
+            document.getElementById('analytics-lost-deals').innerText = lostDealsCount;
+
+            const winRate = totalDeals > 0 ? Math.round((wonDealsCount / totalDeals) * 100) : 0;
+            document.getElementById('analytics-win-rate').innerText = `${winRate}%`;
+        }
+
+        function updateDashboardMetrics() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            let todayCount = 0;
+            let overdueCount = 0;
+            let alertsHtml = '';
+            let dropdownHtml = '';
+            let activitiesHtml = '';
+
+            customerRecordsList.forEach((cust) => {
+                if (!cust.nextAppt) return;
+                
+                if (cust.nextAppt === todayStr) {
+                    todayCount++;
+                } else if (cust.nextAppt < todayStr) {
+                    overdueCount++;
+                }
+
+                const isOverdue = cust.nextAppt < todayStr;
+                const isToday = cust.nextAppt === todayStr;
+                const badgeColor = isOverdue ? 'bg-red-100 text-red-700 border-red-200' : (isToday ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-700 border-gray-200');
+
+                const alertCard = `
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-gray-800 text-sm">${cust.companyName}</h4>
+                                <span class="text-xs px-2 py-0.5 rounded-full font-semibold border ${badgeColor}">นัดหมาย: ${cust.nextAppt}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-1"><i class="fa-solid fa-phone mr-1 text-gray-400"></i>ติดต่อ: ${cust.contactName} (${cust.contactPhone})</p>
+                            <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-flag mr-1 text-gray-400"></i>เป้าหมาย: ${cust.nextGoal || '-'}</p>
+                        </div>
+                        <div class="pt-2 border-t border-gray-100 flex justify-between items-center text-xs">
+                            <span class="text-gray-400">ผู้รับผิดชอบ: ${cust.owner}</span>
+                            <button onclick="openCustomerModal(${customerRecordsList.indexOf(cust)})" class="text-fire-600 hover:text-fire-700 font-semibold">จัดการ <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                        </div>
+                    </div>
+                `;
+                alertsHtml += alertCard;
+
+                dropdownHtml += `
+                    <div class="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all text-xs">
+                        <p class="font-bold text-gray-800">${cust.companyName}</p>
+                        <p class="text-gray-500">นัดหมาย: ${cust.nextAppt}</p>
+                    </div>
+                `;
+
+                activitiesHtml += `
+                    <div class="flex items-start space-x-3 p-3 rounded-xl bg-gray-50 border border-gray-100 text-xs">
+                        <div class="w-8 h-8 rounded-lg bg-fire-50 text-fire-600 flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="font-bold text-gray-800">${cust.companyName} <span class="text-fire-600 font-normal">(${cust.activityAction || 'อัปเดตข้อมูล'})</span></span>
+                                <span class="text-gray-400">${cust.dateAdded} ${cust.lastUpdated || ''}</span>
+                            </div>
+                            <p class="text-gray-600 mb-1">สถานะติดตาม: <span class="font-semibold text-gray-700">${cust.dealStage}</span> | เป้าหมาย: <span class="text-gray-700">${cust.nextGoal || '-'}</span></p>
+                            <p class="text-gray-400 text-[11px]">ผู้รับผิดชอบ: ${cust.owner} | นัดหมายถัดไป: ${cust.nextAppt}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('stat-today-appointments').innerText = todayCount;
+            document.getElementById('stat-overdue-appointments').innerText = overdueCount;
+
+            const container = document.getElementById('appointment-alerts-container');
+            if (container) {
+                container.innerHTML = alertsHtml || '<div class="col-span-full py-8 text-center text-gray-400 text-sm">ไม่มีคิวติดตามนัดหมายในระบบขณะนี้</div>';
+            }
+
+            const actContainer = document.getElementById('recent-activities-container');
+            if (actContainer) {
+                actContainer.innerHTML = activitiesHtml || '<div class="py-6 text-center text-gray-400 text-sm">ยังไม่มีบันทึกกิจกรรมในระบบ</div>';
+            }
+
+            const dropList = document.getElementById('notification-dropdown-list');
+            const dropBadge = document.getElementById('notification-count-badge');
+            const bellBadge = document.getElementById('notification-badge');
+            
+            const totalAlerts = customerRecordsList.length;
+            if (dropList) {
+                dropList.innerHTML = dropdownHtml || '<p class="text-xs text-gray-400 text-center py-4">ไม่มีการแจ้งเตือนนัดหมายในขณะนี้</p>';
+            }
+            if (dropBadge) dropBadge.innerText = `${totalAlerts} รายการ`;
+            if (bellBadge) {
+                if (totalAlerts > 0) bellBadge.classList.remove('hidden');
+                else bellBadge.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const dateDisplay = document.getElementById('current-date-display');
+            if (dateDisplay) {
+                dateDisplay.innerText = new Date().toLocaleDateString('th-TH', dateOptions);
+            }
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('cust-date-contacted');
+            if(dateInput) dateInput.value = todayStr;
+
+            // ตรวจสอบว่าเคยเข้าสู่ระบบค้างไว้หรือไม่
+            if (currentUser) {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-app-container').classList.remove('hidden');
+                updateUserInterface();
+            }
+
+            updateDashboardMetrics();
+            renderCustomerTable();
+            renderKanbanBoard();
+            renderCalendar();
+        });
+    </script>
+</body>
+</html>
