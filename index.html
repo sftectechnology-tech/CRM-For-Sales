@@ -426,11 +426,15 @@
 
                     <!-- ส่วนที่ 1: ตารางจัดการผู้ใช้งานทั่วไป -->
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <div class="p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-3">
                             <h3 class="font-bold text-gray-800 flex items-center">
                                 <i class="fa-solid fa-users-gear text-fire-600 mr-2"></i> รายชื่อผู้ใช้งานในระบบ
                             </h3>
                             <div class="flex items-center space-x-2">
+                                <button onclick="openCloudConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-1.5 transition-all">
+                                    <i class="fa-solid fa-gear"></i>
+                                    <span>ตั้งค่า Cloud Sync (สำหรับ GitHub)</span>
+                                </button>
                                 <span id="cloud-sync-badge" class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
                                     <span>ซิงค์ข้อมูลออนไลน์</span>
@@ -761,6 +765,39 @@
         </div>
     </div>
 
+    <!-- Modal ตั้งค่า Cloud Sync (Firebase Config) สำหรับใช้งานบน GitHub / Hosting ภายนอก -->
+    <div id="cloud-config-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeCloudConfigModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 pointer-events-auto">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="font-bold text-base text-gray-800 flex items-center">
+                        <i class="fa-solid fa-cloud text-fire-600 mr-2"></i> ตั้งค่าเชื่อมต่อฐานข้อมูลกลาง (Cloud Sync)
+                    </h3>
+                    <button onclick="closeCloudConfigModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    เมื่อนำระบบขึ้นใช้งานบน <b>GitHub Pages</b> หากต้องการให้พนักงานทุกคนในองค์กรซิงค์ข้อมูลร่วมกันข้ามเครื่อง สามารถนำค่า <b>Firebase Config (JSON)</b> จากโปรเจกต์ Firebase ของคุณมาวางด้านล่างนี้ได้ทันที (หากยังไม่ตั้งค่า ระบบจะทำงานในโหมดจัดเก็บข้อมูลบนอุปกรณ์อัตโนมัติ)
+                </p>
+                <form onsubmit="saveCloudConfig(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Firebase Config (JSON Object)</label>
+                        <textarea id="cloud-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", "storageBucket": "...", "messagingSenderId": "...", "appId": "..."}' class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fire-500"></textarea>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <button type="button" onclick="clearCloudConfig()" class="px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 text-xs font-semibold">ล้างค่าเชื่อมต่อ</button>
+                        <div class="space-x-2">
+                            <button type="button" onclick="closeCloudConfigModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50">ยกเลิก</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-fire-600 text-white text-xs font-semibold hover:bg-fire-700">บันทึกและเชื่อมต่อ</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript สำหรับควบคุมระบบ CRM, Cloud Sync และ Authentication -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -786,18 +823,62 @@
         let registeredUsers = [defaultAdminAccount];
         let currentUser = null;
 
-        // เชื่อมต่อระบบ Cloud Database เพื่อซิงค์ข้อมูลร่วมกันทั้งองค์กรแบบเรียลไทม์
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        // ตรวจสอบการตั้งค่าฐานข้อมูลออนไลน์ (รองรับทั้งใน Environment และบน GitHub Pages)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paf-global-crm';
+        const savedCustomConfigStr = localStorage.getItem('paf_custom_firebase_config');
+        let firebaseConfig = null;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else if (savedCustomConfigStr) {
+            try {
+                firebaseConfig = JSON.parse(savedCustomConfigStr);
+            } catch (e) {
+                firebaseConfig = null;
+            }
+        }
+
         let db = null;
         let auth = null;
         let isCloudReady = false;
 
+        function loadLocalFallbackData() {
+            const localUsers = JSON.parse(localStorage.getItem('firesafe_users') || 'null');
+            if (Array.isArray(localUsers) && localUsers.length > 0) {
+                if (!localUsers.some(u => (u.email || '').toLowerCase() === 'admin')) {
+                    localUsers.unshift(defaultAdminAccount);
+                }
+                registeredUsers = localUsers;
+            } else {
+                registeredUsers = [defaultAdminAccount];
+                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+            }
+
+            const localCustomers = JSON.parse(localStorage.getItem('firesafe_customers') || '[]');
+            if (Array.isArray(localCustomers)) {
+                customerRecordsList = localCustomers;
+            }
+
+            const badge = document.getElementById('cloud-sync-badge');
+            if (badge) {
+                badge.className = 'text-xs bg-amber-50 text-amber-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1';
+                badge.innerHTML = '<i class="fa-solid fa-hard-drive"></i><span>โหมดจัดเก็บในเครื่อง (Local)</span>';
+            }
+            refreshAllViews();
+        }
+
+        function saveLocalFallbackData() {
+            localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+            localStorage.setItem('firesafe_customers', JSON.stringify(customerRecordsList));
+        }
+
         async function initCloudSync() {
+            // โหลดข้อมูลในเครื่องก่อนเสมอเพื่อให้เข้าใช้งานได้ทันทีแม้ยังไม่ได้ตั้งค่า Cloud
+            loadLocalFallbackData();
+
             if (!firebaseConfig) {
-                showToast('ไม่พบการตั้งค่าฐานข้อมูลออนไลน์ กรุณาตรวจสอบระบบ', 'bg-red-600');
                 return;
             }
+
             try {
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
@@ -812,6 +893,12 @@
                 if (!auth.currentUser) return;
                 isCloudReady = true;
 
+                const badge = document.getElementById('cloud-sync-badge');
+                if (badge) {
+                    badge.className = 'text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1';
+                    badge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>ซิงค์ข้อมูลออนไลน์ (Cloud)</span>';
+                }
+
                 // 1. ซิงค์ข้อมูลผู้ใช้งานทั้งหมดในองค์กร (Public Data)
                 const usersCol = collection(db, 'artifacts', appId, 'public', 'data', 'crm_users');
                 onSnapshot(usersCol, (snapshot) => {
@@ -820,15 +907,14 @@
                         loadedUsers.push({ id: docSnap.id, ...docSnap.data() });
                     });
 
-                    // ตรวจสอบและสร้างบัญชี admin หลักบน Cloud หากยังไม่มี
                     if (!loadedUsers.some(u => (u.email || '').toLowerCase() === 'admin')) {
                         setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', 'admin'), defaultAdminAccount);
                         loadedUsers.unshift(defaultAdminAccount);
                     }
 
                     registeredUsers = loadedUsers;
+                    saveLocalFallbackData();
 
-                    // อัปเดตข้อมูลผู้ใช้ปัจจุบันหากมีการแก้ไขจาก Admin
                     if (currentUser) {
                         const updatedSelf = registeredUsers.find(u => u.email.toLowerCase() === currentUser.email.toLowerCase());
                         if (updatedSelf) {
@@ -850,9 +936,9 @@
                         loadedCustomers.push({ id: docSnap.id, ...docSnap.data() });
                     });
 
-                    // เรียงลำดับข้อมูลล่าสุดขึ้นก่อน
                     loadedCustomers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                     customerRecordsList = loadedCustomers;
+                    saveLocalFallbackData();
                     refreshAllViews();
                 }, (error) => {
                     console.error('Customers sync error:', error);
@@ -860,9 +946,48 @@
 
             } catch (err) {
                 console.error('Cloud init error:', err);
-                showToast('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูลออนไลน์', 'bg-red-600');
+                isCloudReady = false;
             }
         }
+
+        window.openCloudConfigModal = function() {
+            const input = document.getElementById('cloud-config-input');
+            if (input) {
+                input.value = localStorage.getItem('paf_custom_firebase_config') || '';
+            }
+            document.getElementById('cloud-config-modal').classList.remove('hidden');
+        };
+
+        window.closeCloudConfigModal = function() {
+            document.getElementById('cloud-config-modal').classList.add('hidden');
+        };
+
+        window.saveCloudConfig = function(event) {
+            event.preventDefault();
+            const raw = document.getElementById('cloud-config-input').value.trim();
+            if (!raw) {
+                showToast('กรุณาวางโค้ด Firebase Config', 'bg-red-600');
+                return;
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                if (!parsed.apiKey || !parsed.projectId) {
+                    showToast('รูปแบบ Config ไม่ถูกต้อง ต้องมี apiKey และ projectId', 'bg-red-600');
+                    return;
+                }
+                localStorage.setItem('paf_custom_firebase_config', JSON.stringify(parsed));
+                showToast('บันทึกการตั้งค่า Cloud สำเร็จ กำลังรีโหลดระบบ...', 'bg-green-600');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (e) {
+                showToast('รูปแบบ JSON ไม่ถูกต้อง กรุณาตรวจสอบเครื่องหมายปีกกาและเครื่องหมายคำพูด', 'bg-red-600');
+            }
+        };
+
+        window.clearCloudConfig = function() {
+            localStorage.removeItem('paf_custom_firebase_config');
+            showToast('ล้างค่า Cloud Config เรียบร้อยแล้ว กำลังรีโหลด...', 'bg-slate-800');
+            setTimeout(() => window.location.reload(), 1000);
+        };
 
         function sanitizeDocId(str) {
             return str.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
@@ -910,10 +1035,6 @@
 
         window.handleAuthSubmit = async function(event) {
             event.preventDefault();
-            if (!isCloudReady || !auth.currentUser) {
-                showToast('กำลังเชื่อมต่อระบบออนไลน์ กรุณารอสักครู่...', 'bg-amber-600');
-                return;
-            }
 
             const email = document.getElementById('auth-email').value.trim().toLowerCase();
             const password = document.getElementById('auth-password').value.trim();
@@ -946,12 +1067,20 @@
                 const userId = sanitizeDocId(email);
                 const newUser = { id: userId, fullname, role, email, password, createdAt: Date.now() };
                 try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', userId), newUser);
+                    if (isCloudReady && auth && auth.currentUser) {
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', userId), newUser);
+                    } else {
+                        registeredUsers.push(newUser);
+                        saveLocalFallbackData();
+                    }
                     completeLogin(newUser);
-                    showToast('สมัครสมาชิกและซิงค์เข้าสู่ระบบองค์กรสำเร็จ', 'bg-green-600');
+                    showToast('สมัครสมาชิกและเข้าสู่ระบบเรียบร้อยแล้ว', 'bg-green-600');
                 } catch (err) {
                     console.error('Register error:', err);
-                    showToast('ไม่สามารถบันทึกข้อมูลสมัครสมาชิกได้', 'bg-red-600');
+                    registeredUsers.push(newUser);
+                    saveLocalFallbackData();
+                    completeLogin(newUser);
+                    showToast('สมัครสมาชิกและเข้าสู่ระบบเรียบร้อยแล้ว', 'bg-green-600');
                 }
 
             } else if (currentAuthMode === 'login') {
@@ -970,20 +1099,29 @@
                     return;
                 }
                 try {
-                    const targetDocId = foundUser.id || sanitizeDocId(email);
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId), { password });
+                    if (isCloudReady && auth && auth.currentUser) {
+                        const targetDocId = foundUser.id || sanitizeDocId(email);
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId), { password });
+                    } else {
+                        foundUser.password = password;
+                        saveLocalFallbackData();
+                    }
                     showToast('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', 'bg-green-600');
                     switchAuthTab('login');
                     document.getElementById('auth-password').value = '';
                 } catch (err) {
                     console.error('Reset password error:', err);
-                    showToast('ไม่สามารถรีเซ็ตรหัสผ่านได้', 'bg-red-600');
+                    foundUser.password = password;
+                    saveLocalFallbackData();
+                    showToast('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', 'bg-green-600');
+                    switchAuthTab('login');
                 }
             }
         };
 
         function completeLogin(user) {
             currentUser = user;
+            localStorage.setItem('firesafe_logged_in_user', JSON.stringify(user));
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('main-app-container').classList.remove('hidden');
             updateUserInterface();
@@ -992,6 +1130,7 @@
 
         window.logoutSystem = function() {
             currentUser = null;
+            localStorage.removeItem('firesafe_logged_in_user');
             document.getElementById('main-app-container').classList.add('hidden');
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('auth-password').value = '';
@@ -1154,7 +1293,6 @@
 
         window.saveEditedUser = async function(event) {
             event.preventDefault();
-            if (!isCloudReady || !auth.currentUser) return;
             const index = parseInt(document.getElementById('edit-user-index').value, 10);
             const user = registeredUsers[index];
             if (!user) return;
@@ -1184,11 +1322,17 @@
             };
 
             try {
-                const targetDocId = user.id || sanitizeDocId(user.email);
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId), {
-                    id: targetDocId,
-                    ...updatedData
-                });
+                if (isCloudReady && auth && auth.currentUser) {
+                    const targetDocId = user.id || sanitizeDocId(user.email);
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId), {
+                        id: targetDocId,
+                        ...updatedData
+                    });
+                } else {
+                    registeredUsers[index] = { ...user, ...updatedData };
+                    saveLocalFallbackData();
+                    renderAdminPanel();
+                }
                 closeEditUserModal();
                 showToast('บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว', 'bg-green-600');
             } catch (err) {
@@ -1198,7 +1342,6 @@
         };
 
         window.deleteUserAccount = async function(index) {
-            if (!isCloudReady || !auth.currentUser) return;
             const target = registeredUsers[index];
             if (!target) return;
             if ((target.email || '').toLowerCase() === 'admin') {
@@ -1207,8 +1350,14 @@
             }
 
             try {
-                const targetDocId = target.id || sanitizeDocId(target.email);
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId));
+                if (isCloudReady && auth && auth.currentUser) {
+                    const targetDocId = target.id || sanitizeDocId(target.email);
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId));
+                } else {
+                    registeredUsers.splice(index, 1);
+                    saveLocalFallbackData();
+                    renderAdminPanel();
+                }
                 showToast(`ลบบัญชีผู้ใช้งาน "${target.fullname}" เรียบร้อยแล้ว`, 'bg-slate-800');
             } catch (err) {
                 console.error('Delete user error:', err);
@@ -1288,11 +1437,6 @@
         };
 
         window.submitCustomerForm = async function() {
-            if (!isCloudReady || !auth.currentUser) {
-                showToast('กำลังเชื่อมต่อฐานข้อมูลออนไลน์ กรุณารอสักครู่...', 'bg-amber-600');
-                return;
-            }
-
             const companyName = document.getElementById('cust-company').value.trim();
             const contactName = document.getElementById('cust-contact').value.trim();
             const contactPhone = document.getElementById('cust-phone').value.trim();
@@ -1350,8 +1494,18 @@
             };
 
             try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_customers', docId), customerData);
-                showToast(isEditing ? 'อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว' : 'บันทึกและซิงค์ข้อมูลลูกค้าใหม่เรียบร้อยแล้ว', 'bg-green-600');
+                if (isCloudReady && auth && auth.currentUser) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_customers', docId), customerData);
+                } else {
+                    if (isEditing) {
+                        customerRecordsList[editingIndex] = customerData;
+                    } else {
+                        customerRecordsList.unshift(customerData);
+                    }
+                    saveLocalFallbackData();
+                    refreshAllViews();
+                }
+                showToast(isEditing ? 'อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว' : 'บันทึกข้อมูลลูกค้าใหม่เรียบร้อยแล้ว', 'bg-green-600');
                 closeCustomerModal();
             } catch (err) {
                 console.error('Save customer error:', err);
@@ -1360,11 +1514,16 @@
         };
 
         window.deleteCustomer = async function(index) {
-            if (!isCloudReady || !auth.currentUser) return;
             if (index < 0 || index >= customerRecordsList.length) return;
             const target = customerRecordsList[index];
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_customers', target.id));
+                if (isCloudReady && auth && auth.currentUser) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_customers', target.id));
+                } else {
+                    customerRecordsList.splice(index, 1);
+                    saveLocalFallbackData();
+                    refreshAllViews();
+                }
                 showToast(`ลบข้อมูล "${target.companyName}" เรียบร้อยแล้ว`, 'bg-slate-800');
             } catch (err) {
                 console.error('Delete customer error:', err);
@@ -1399,8 +1558,7 @@
         // ซิงค์ข้อมูลอัตโนมัติทันทีเมื่อมีการสมัครสมาชิกหรือเพิ่มข้อมูลในแท็บอื่น
         window.addEventListener('storage', (event) => {
             if (event.key === 'firesafe_users' || event.key === 'firesafe_customers') {
-                syncDataFromStorage();
-                refreshAllViews();
+                loadLocalFallbackData();
             }
         });
 
@@ -1870,8 +2028,22 @@
             const dateInput = document.getElementById('cust-date-contacted');
             if(dateInput) dateInput.value = todayStr;
 
-            // เริ่มเชื่อมต่อ Cloud Database เพื่อซิงค์ข้อมูลร่วมกันทั้งองค์กร
+            // เชื่อมต่อระบบจัดเก็บข้อมูลและ Cloud Sync
             initCloudSync();
+
+            // ตรวจสอบ Session ที่ล็อกอินค้างไว้ (ไม่ต้องล็อกอินใหม่จนกว่าจะกดออกจากระบบ)
+            const savedSession = localStorage.getItem('firesafe_logged_in_user');
+            if (savedSession) {
+                try {
+                    const parsedUser = JSON.parse(savedSession);
+                    if (parsedUser && parsedUser.email) {
+                        completeLogin(parsedUser);
+                    }
+                } catch (e) {
+                    localStorage.removeItem('firesafe_logged_in_user');
+                }
+            }
+
             refreshAllViews();
         });
     </script>
