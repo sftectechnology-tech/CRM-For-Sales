@@ -430,7 +430,13 @@
                             <h3 class="font-bold text-gray-800 flex items-center">
                                 <i class="fa-solid fa-users-gear text-fire-600 mr-2"></i> รายชื่อผู้ใช้งานในระบบ
                             </h3>
-                            <span id="admin-user-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 บัญชี</span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="syncAndRefreshAll()" class="text-xs bg-fire-50 hover:bg-fire-100 text-fire-700 px-3 py-1 rounded-full font-semibold transition-all flex items-center space-x-1">
+                                    <i class="fa-solid fa-rotate"></i>
+                                    <span>ซิงค์ข้อมูลล่าสุด</span>
+                                </button>
+                                <span id="admin-user-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 บัญชี</span>
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-sm">
@@ -787,6 +793,37 @@
 
         let currentUser = JSON.parse(localStorage.getItem('firesafe_current_user')) || null;
 
+        function syncDataFromStorage() {
+            const storedCustomers = localStorage.getItem('firesafe_customers');
+            if (storedCustomers) {
+                try {
+                    customerRecordsList = JSON.parse(storedCustomers) || [];
+                } catch (e) {
+                    customerRecordsList = [];
+                }
+            }
+
+            const storedUsers = localStorage.getItem('firesafe_users');
+            if (storedUsers) {
+                try {
+                    registeredUsers = JSON.parse(storedUsers) || [];
+                } catch (e) {
+                    registeredUsers = [];
+                }
+            }
+
+            if (!registeredUsers.some(u => u.email && u.email.toLowerCase() === 'admin')) {
+                registeredUsers.unshift(defaultAdminAccount);
+                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+            }
+        }
+
+        window.syncAndRefreshAll = function() {
+            syncDataFromStorage();
+            refreshAllViews();
+            showToast('ซิงค์ข้อมูลผู้ใช้งานและลูกค้าล่าสุดเรียบร้อยแล้ว', 'bg-green-600');
+        };
+
         function saveCustomersToStorage() {
             localStorage.setItem('firesafe_customers', JSON.stringify(customerRecordsList));
         }
@@ -837,6 +874,7 @@
 
         window.handleAuthSubmit = function(event) {
             event.preventDefault();
+            syncDataFromStorage();
             const email = document.getElementById('auth-email').value.trim().toLowerCase();
             const password = document.getElementById('auth-password').value.trim();
 
@@ -868,10 +906,12 @@
                 const newUser = { fullname, role, email, password };
                 registeredUsers.push(newUser);
                 saveUsersToStorage();
+                syncDataFromStorage();
                 completeLogin(newUser);
                 showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ', 'bg-green-600');
 
             } else if (currentAuthMode === 'login') {
+                syncDataFromStorage();
                 const foundUser = registeredUsers.find(u => u.email.toLowerCase() === email && u.password === password);
                 if (!foundUser) {
                     showToast('อีเมล์หรือรหัสผ่านไม่ถูกต้อง', 'bg-red-600');
@@ -976,6 +1016,7 @@
 
         // ฟังก์ชันสำหรับหน้า Admin Management
         window.renderAdminPanel = function() {
+            syncDataFromStorage();
             const usersTbody = document.getElementById('admin-users-table');
             const contentTbody = document.getElementById('admin-content-table');
             const userCountBadge = document.getElementById('admin-user-count');
@@ -1039,6 +1080,7 @@
         };
 
         window.openEditUserModal = function(index) {
+            syncDataFromStorage();
             const user = registeredUsers[index];
             if (!user) return;
             document.getElementById('edit-user-index').value = index;
@@ -1068,6 +1110,7 @@
 
         window.saveEditedUser = function(event) {
             event.preventDefault();
+            syncDataFromStorage();
             const index = parseInt(document.getElementById('edit-user-index').value, 10);
             const user = registeredUsers[index];
             if (!user) return;
@@ -1109,6 +1152,7 @@
         };
 
         window.deleteUserAccount = function(index) {
+            syncDataFromStorage();
             const target = registeredUsers[index];
             if (!target) return;
             if (target.email.toLowerCase() === 'admin') {
@@ -1193,6 +1237,7 @@
         };
 
         window.submitCustomerForm = function() {
+            syncDataFromStorage();
             const companyName = document.getElementById('cust-company').value.trim();
             const contactName = document.getElementById('cust-contact').value.trim();
             const contactPhone = document.getElementById('cust-phone').value.trim();
@@ -1258,6 +1303,7 @@
         };
 
         window.deleteCustomer = function(index) {
+            syncDataFromStorage();
             if (index < 0 || index >= customerRecordsList.length) return;
             const removed = customerRecordsList.splice(index, 1);
             saveCustomersToStorage();
@@ -1282,6 +1328,7 @@
         };
 
         function refreshAllViews() {
+            syncDataFromStorage();
             updateDashboardMetrics();
             renderCustomerTable();
             renderKanbanBoard();
@@ -1289,18 +1336,27 @@
             renderAdminPanel();
         }
 
-        window.changeCalendarMonth = function(direction) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+        // ซิงค์ข้อมูลอัตโนมัติทันทีเมื่อมีการสมัครสมาชิกหรือเพิ่มข้อมูลในแท็บอื่น
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'firesafe_users' || event.key === 'firesafe_customers') {
+                syncDataFromStorage();
+                refreshAllViews();
+            }
+        });
+
+        // ฟังก์ชันจัดการปฏิทินตารางนัดหมาย (Appointment Calendar)
+        window.changeCalendarMonth = function(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
             renderCalendar();
         };
 
         window.selectCalendarMonthYear = function() {
             const monthSelect = document.getElementById('calendar-month-select');
             const yearSelect = document.getElementById('calendar-year-select');
-            if (!monthSelect || !yearSelect) return;
-            currentCalendarDate.setFullYear(parseInt(yearSelect.value, 10));
-            currentCalendarDate.setMonth(parseInt(monthSelect.value, 10));
-            renderCalendar();
+            if (monthSelect && yearSelect) {
+                currentCalendarDate = new Date(parseInt(yearSelect.value, 10), parseInt(monthSelect.value, 10), 1);
+                renderCalendar();
+            }
         };
 
         window.jumpToCalendarDate = function(dateStr) {
@@ -1310,12 +1366,6 @@
                 currentCalendarDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
                 selectedCalendarDate = dateStr;
                 renderCalendar();
-                const appts = customerRecordsList.filter(cust => cust.nextAppt === dateStr);
-                if (appts.length > 0) {
-                    openAppointmentDetail(dateStr);
-                } else {
-                    showToast(`แสดงปฏิทินวันที่ ${dateStr} (ไม่มีคิวนัดหมายในวันนี้)`);
-                }
             }
         };
 
@@ -1328,70 +1378,59 @@
             renderCalendar();
         };
 
-        function populateCalendarYearOptions(activeYear) {
-            const yearSelect = document.getElementById('calendar-year-select');
-            if (!yearSelect) return;
-            const currentYear = new Date().getFullYear();
-            const startYear = Math.min(currentYear - 5, activeYear - 2);
-            const endYear = Math.max(currentYear + 5, activeYear + 2);
-            let optionsHtml = '';
-            for (let y = startYear; y <= endYear; y++) {
-                optionsHtml += `<option value="${y}" ${y === activeYear ? 'selected' : ''}>พ.ศ. ${y + 543}</option>`;
-            }
-            yearSelect.innerHTML = optionsHtml;
-        }
-
         window.renderCalendar = function() {
             const grid = document.getElementById('calendar-grid');
             const monthSelect = document.getElementById('calendar-month-select');
+            const yearSelect = document.getElementById('calendar-year-select');
             if (!grid) return;
 
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
 
-            if (monthSelect) monthSelect.value = String(month);
-            populateCalendarYearOptions(year);
-
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            let html = '';
-            
-            // ช่องว่างของวันในสัปดาห์ก่อนหน้า
-            for (let i = 0; i < firstDayIndex; i++) {
-                html += `<div class="bg-gray-50 min-h-[135px] p-2 opacity-40"></div>`;
+            if (yearSelect && yearSelect.options.length === 0) {
+                const currentYear = new Date().getFullYear();
+                let yearOpts = '';
+                for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+                    yearOpts += `<option value="${y}">พ.ศ. ${y + 543}</option>`;
+                }
+                yearSelect.innerHTML = yearOpts;
             }
 
-            // วนลูปสร้างวันในเดือน
-            for (let day = 1; day <= totalDays; day++) {
-                const formattedMonth = String(month + 1).padStart(2, '0');
-                const formattedDay = String(day).padStart(2, '0');
-                const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+            if (monthSelect) monthSelect.value = month;
+            if (yearSelect) yearSelect.value = year;
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let html = '';
+
+            // ช่องว่างก่อนวันที่ 1 ของเดือน
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                html += `<div class="bg-gray-50/60 min-h-[135px] p-2"></div>`;
+            }
+
+            // วนลูปสร้างแต่ละวันในเดือน
+            for (let day = 1; day <= daysInMonth; day++) {
+                const monthStr = String(month + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const dateStr = `${year}-${monthStr}-${dayStr}`;
 
                 const apptsOnThisDay = customerRecordsList.filter(cust => cust.nextAppt === dateStr);
+                const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selectedCalendarDate;
 
-                const isToday = new Date().toISOString().split('T')[0] === dateStr;
-                const isSelected = selectedCalendarDate === dateStr;
                 const todayBadgeClass = isToday
-                    ? 'bg-fire-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold'
-                    : (isSelected ? 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold' : 'text-gray-700 font-semibold');
+                    ? 'bg-fire-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-sm'
+                    : 'text-gray-700 font-semibold';
 
                 let apptsHtml = '';
-                apptsOnThisDay.forEach((cust) => {
+                apptsOnThisDay.forEach(cust => {
                     apptsHtml += `
-                        <div onclick="openAppointmentDetail('${dateStr}')" class="bg-fire-50 hover:bg-fire-100 border border-fire-200 text-gray-800 text-[10px] p-1.5 rounded-lg cursor-pointer transition-all space-y-0.5 shadow-2xs" title="คลิกเพื่อดูรายละเอียดทั้งหมด">
-                            <div class="font-bold text-fire-700 truncate flex items-center">
-                                <i class="fa-solid fa-building text-[9px] mr-1 flex-shrink-0"></i>
-                                <span class="truncate">${cust.companyName || '-'}</span>
-                            </div>
-                            <div class="text-gray-700 truncate flex items-center">
-                                <i class="fa-solid fa-user text-[9px] text-gray-400 mr-1 flex-shrink-0"></i>
-                                <span class="truncate">ติดต่อ: ${cust.contactName || '-'}</span>
-                            </div>
-                            <div class="text-blue-700 font-medium truncate flex items-center">
-                                <i class="fa-solid fa-user-tie text-[9px] text-blue-500 mr-1 flex-shrink-0"></i>
-                                <span class="truncate">ดูแล: ${cust.owner || '-'}</span>
-                            </div>
+                        <div onclick="openAppointmentDetail('${dateStr}')" class="p-1.5 rounded-lg bg-fire-50 hover:bg-fire-100 border border-fire-200 cursor-pointer transition-all text-left">
+                            <p class="text-[11px] font-bold text-fire-800 truncate">${cust.companyName}</p>
+                            <p class="text-[10px] text-gray-600 truncate"><i class="fa-solid fa-user text-[9px] mr-1"></i>${cust.contactName}</p>
+                            <p class="text-[10px] text-slate-500 truncate"><i class="fa-solid fa-user-tie text-[9px] mr-1"></i>${cust.owner}</p>
                         </div>
                     `;
                 });
@@ -1772,16 +1811,14 @@
             if(dateInput) dateInput.value = todayStr;
 
             // ตรวจสอบว่าเคยเข้าสู่ระบบค้างไว้หรือไม่
+            syncDataFromStorage();
             if (currentUser) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('main-app-container').classList.remove('hidden');
                 updateUserInterface();
             }
 
-            updateDashboardMetrics();
-            renderCustomerTable();
-            renderKanbanBoard();
-            renderCalendar();
+            refreshAllViews();
         });
     </script>
 </body>
