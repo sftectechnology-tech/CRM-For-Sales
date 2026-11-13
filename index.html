@@ -431,10 +431,10 @@
                                 <i class="fa-solid fa-users-gear text-fire-600 mr-2"></i> รายชื่อผู้ใช้งานในระบบ
                             </h3>
                             <div class="flex items-center space-x-2">
-                                <button onclick="syncAndRefreshAll()" class="text-xs bg-fire-50 hover:bg-fire-100 text-fire-700 px-3 py-1 rounded-full font-semibold transition-all flex items-center space-x-1">
-                                    <i class="fa-solid fa-rotate"></i>
-                                    <span>ซิงค์ข้อมูลล่าสุด</span>
-                                </button>
+                                <span id="cloud-sync-badge" class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold flex items-center space-x-1">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>ซิงค์ข้อมูลออนไลน์</span>
+                                </span>
                                 <span id="admin-user-count" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">0 บัญชี</span>
                             </div>
                         </div>
@@ -716,52 +716,59 @@
                                     <label class="block text-xs font-semibold text-gray-700 mb-1">ระดับความสนใจ</label>
                                     <select id="cust-interest-level" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
                                         <option value="สนใจเบื้องต้น">สนใจเบื้องต้น</option>
-                                        <option value="สนใจมากพร้อมซื้อ">สนใจมากพร้อมซื้อ</option>
-                                        <option value="รอตัดสินใจงบประมาณ">รอตัดสินใจงบประมาณ</option>
+                                        <option value="สนใจปานกลาง">สนใจปานกลาง</option>
+                                        <option value="สนใจมาก / พร้อมสั่งซื้อ">สนใจมาก / พร้อมสั่งซื้อ</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ข้อมูลเพิ่มเติม / หมายเหตุ</label>
-                                    <input type="text" id="cust-extra-notes" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">หมายเหตุเพิ่มเติม</label>
+                                    <textarea id="cust-extra-notes" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fire-500"></textarea>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Submit Button -->
-                        <div class="pt-4 border-t border-gray-100 flex justify-end space-x-3">
-                            <button type="button" onclick="closeCustomerModal()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">ยกเลิก</button>
-                            <button type="button" onclick="submitCustomerForm()" class="px-6 py-2.5 rounded-xl bg-fire-600 text-white font-semibold text-sm hover:bg-fire-700 shadow-lg shadow-fire-600/30 transition-all">บันทึกข้อมูล</button>
-                        </div>
                     </form>
+                </div>
+
+                <!-- Footer Modal -->
+                <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" onclick="closeCustomerModal()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-all">
+                        ยกเลิก
+                    </button>
+                    <button type="button" onclick="submitCustomerForm()" class="px-6 py-2.5 rounded-xl bg-fire-600 hover:bg-fire-700 text-white text-sm font-semibold shadow-sm shadow-fire-600/30 transition-all">
+                        บันทึกข้อมูลลูกค้า
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal แสดงรายละเอียดนัดหมายประจำวัน -->
+    <!-- Modal แสดงรายละเอียดนัดหมายในปฏิทิน -->
     <div id="appointment-detail-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeAppointmentDetailModal()"></div>
-        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
-            <div class="w-screen max-w-lg bg-white shadow-2xl flex flex-col">
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                    <h3 class="font-bold text-lg text-gray-800 flex items-center">
-                        <i class="fa-solid fa-calendar-day text-fire-600 mr-2"></i> รายการนัดหมายวันที่: <span id="modal-appt-date" class="ml-1 text-fire-600"></span>
+        <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <h3 class="font-bold text-base text-gray-800 flex items-center">
+                        <i class="fa-regular fa-calendar-check text-fire-600 mr-2"></i> รายละเอียดนัดหมายวันที่ <span id="modal-appt-date" class="ml-1 text-fire-600"></span>
                     </h3>
                     <button onclick="closeAppointmentDetailModal()" class="w-8 h-8 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div id="modal-appt-list" class="flex-1 overflow-y-auto p-6 space-y-4">
-                    <!-- รายการนัดหมายจะแสดงที่นี่ -->
+                <div id="modal-appt-list" class="p-6 overflow-y-auto space-y-4">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript สำหรับควบคุมระบบ CRM และ Authentication -->
-    <script>
-        // หน่วยความจำเก็บข้อมูลลูกค้าทั้งหมดและข้อมูลผู้ใช้ระบบ (โหลดจาก localStorage)
-        let customerRecordsList = JSON.parse(localStorage.getItem('firesafe_customers')) || [];
+    <!-- JavaScript สำหรับควบคุมระบบ CRM, Cloud Sync และ Authentication -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // หน่วยความจำหลักของระบบ
+        let customerRecordsList = [];
         let editingIndex = null;
         let currentCalendarDate = new Date();
         let selectedCalendarDate = null;
@@ -769,67 +776,96 @@
         let currentAuthMode = 'login';
 
         const defaultAdminAccount = {
+            id: 'admin',
             fullname: 'ผู้ดูแลระบบหลัก (Admin)',
             role: 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)',
             email: 'admin',
             password: 'admin'
         };
 
-        let registeredUsers = JSON.parse(localStorage.getItem('firesafe_users')) || [
-            defaultAdminAccount,
-            {
-                fullname: 'สมชาย ยอดขาย',
-                role: 'พนักงานขาย (Sales)',
-                email: 'sales@pafglobal.com',
-                password: '123456'
+        let registeredUsers = [defaultAdminAccount];
+        let currentUser = null;
+
+        // เชื่อมต่อระบบ Cloud Database เพื่อซิงค์ข้อมูลร่วมกันทั้งองค์กรแบบเรียลไทม์
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        let db = null;
+        let auth = null;
+        let isCloudReady = false;
+
+        async function initCloudSync() {
+            if (!firebaseConfig) {
+                showToast('ไม่พบการตั้งค่าฐานข้อมูลออนไลน์ กรุณาตรวจสอบระบบ', 'bg-red-600');
+                return;
             }
-        ];
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
 
-        // ตรวจสอบให้แน่ใจว่ามีบัญชี admin / admin อยู่ในระบบเสมอ
-        if (!registeredUsers.some(u => u.email.toLowerCase() === 'admin')) {
-            registeredUsers.unshift(defaultAdminAccount);
-            localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
-        }
-
-        let currentUser = JSON.parse(localStorage.getItem('firesafe_current_user')) || null;
-
-        function syncDataFromStorage() {
-            const storedCustomers = localStorage.getItem('firesafe_customers');
-            if (storedCustomers) {
-                try {
-                    customerRecordsList = JSON.parse(storedCustomers) || [];
-                } catch (e) {
-                    customerRecordsList = [];
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
                 }
-            }
 
-            const storedUsers = localStorage.getItem('firesafe_users');
-            if (storedUsers) {
-                try {
-                    registeredUsers = JSON.parse(storedUsers) || [];
-                } catch (e) {
-                    registeredUsers = [];
-                }
-            }
+                if (!auth.currentUser) return;
+                isCloudReady = true;
 
-            if (!registeredUsers.some(u => u.email && u.email.toLowerCase() === 'admin')) {
-                registeredUsers.unshift(defaultAdminAccount);
-                localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+                // 1. ซิงค์ข้อมูลผู้ใช้งานทั้งหมดในองค์กร (Public Data)
+                const usersCol = collection(db, 'artifacts', appId, 'public', 'data', 'crm_users');
+                onSnapshot(usersCol, (snapshot) => {
+                    const loadedUsers = [];
+                    snapshot.forEach((docSnap) => {
+                        loadedUsers.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    // ตรวจสอบและสร้างบัญชี admin หลักบน Cloud หากยังไม่มี
+                    if (!loadedUsers.some(u => (u.email || '').toLowerCase() === 'admin')) {
+                        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', 'admin'), defaultAdminAccount);
+                        loadedUsers.unshift(defaultAdminAccount);
+                    }
+
+                    registeredUsers = loadedUsers;
+
+                    // อัปเดตข้อมูลผู้ใช้ปัจจุบันหากมีการแก้ไขจาก Admin
+                    if (currentUser) {
+                        const updatedSelf = registeredUsers.find(u => u.email.toLowerCase() === currentUser.email.toLowerCase());
+                        if (updatedSelf) {
+                            currentUser = updatedSelf;
+                            updateUserInterface();
+                        }
+                    }
+
+                    renderAdminPanel();
+                }, (error) => {
+                    console.error('Users sync error:', error);
+                });
+
+                // 2. ซิงค์ข้อมูลลูกค้าและงานขายทั้งหมดในองค์กร (Public Data)
+                const customersCol = collection(db, 'artifacts', appId, 'public', 'data', 'crm_customers');
+                onSnapshot(customersCol, (snapshot) => {
+                    const loadedCustomers = [];
+                    snapshot.forEach((docSnap) => {
+                        loadedCustomers.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    // เรียงลำดับข้อมูลล่าสุดขึ้นก่อน
+                    loadedCustomers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    customerRecordsList = loadedCustomers;
+                    refreshAllViews();
+                }, (error) => {
+                    console.error('Customers sync error:', error);
+                });
+
+            } catch (err) {
+                console.error('Cloud init error:', err);
+                showToast('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูลออนไลน์', 'bg-red-600');
             }
         }
 
-        window.syncAndRefreshAll = function() {
-            syncDataFromStorage();
-            refreshAllViews();
-            showToast('ซิงค์ข้อมูลผู้ใช้งานและลูกค้าล่าสุดเรียบร้อยแล้ว', 'bg-green-600');
-        };
-
-        function saveCustomersToStorage() {
-            localStorage.setItem('firesafe_customers', JSON.stringify(customerRecordsList));
-        }
-
-        function saveUsersToStorage() {
-            localStorage.setItem('firesafe_users', JSON.stringify(registeredUsers));
+        function sanitizeDocId(str) {
+            return str.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
         }
 
         // ระบบ Authentication (Login / Register / Forgot Password)
@@ -872,9 +908,13 @@
             }
         };
 
-        window.handleAuthSubmit = function(event) {
+        window.handleAuthSubmit = async function(event) {
             event.preventDefault();
-            syncDataFromStorage();
+            if (!isCloudReady || !auth.currentUser) {
+                showToast('กำลังเชื่อมต่อระบบออนไลน์ กรุณารอสักครู่...', 'bg-amber-600');
+                return;
+            }
+
             const email = document.getElementById('auth-email').value.trim().toLowerCase();
             const password = document.getElementById('auth-password').value.trim();
 
@@ -897,22 +937,25 @@
                     return;
                 }
 
-                const existing = registeredUsers.find(u => u.email.toLowerCase() === email);
+                const existing = registeredUsers.find(u => (u.email || '').toLowerCase() === email);
                 if (existing) {
                     showToast('อีเมล์หรือชื่อผู้ใช้งานนี้ถูกใช้งานในระบบแล้ว', 'bg-red-600');
                     return;
                 }
 
-                const newUser = { fullname, role, email, password };
-                registeredUsers.push(newUser);
-                saveUsersToStorage();
-                syncDataFromStorage();
-                completeLogin(newUser);
-                showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ', 'bg-green-600');
+                const userId = sanitizeDocId(email);
+                const newUser = { id: userId, fullname, role, email, password, createdAt: Date.now() };
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', userId), newUser);
+                    completeLogin(newUser);
+                    showToast('สมัครสมาชิกและซิงค์เข้าสู่ระบบองค์กรสำเร็จ', 'bg-green-600');
+                } catch (err) {
+                    console.error('Register error:', err);
+                    showToast('ไม่สามารถบันทึกข้อมูลสมัครสมาชิกได้', 'bg-red-600');
+                }
 
             } else if (currentAuthMode === 'login') {
-                syncDataFromStorage();
-                const foundUser = registeredUsers.find(u => u.email.toLowerCase() === email && u.password === password);
+                const foundUser = registeredUsers.find(u => (u.email || '').toLowerCase() === email && u.password === password);
                 if (!foundUser) {
                     showToast('อีเมล์หรือรหัสผ่านไม่ถูกต้อง', 'bg-red-600');
                     return;
@@ -921,22 +964,26 @@
                 showToast(`ยินดีต้อนรับคุณ ${foundUser.fullname}`, 'bg-green-600');
 
             } else if (currentAuthMode === 'forgot') {
-                const userIndex = registeredUsers.findIndex(u => u.email.toLowerCase() === email);
-                if (userIndex === -1) {
+                const foundUser = registeredUsers.find(u => (u.email || '').toLowerCase() === email);
+                if (!foundUser) {
                     showToast('ไม่พบอีเมล์นี้ในระบบ', 'bg-red-600');
                     return;
                 }
-                registeredUsers[userIndex].password = password;
-                saveUsersToStorage();
-                showToast('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', 'bg-green-600');
-                switchAuthTab('login');
-                document.getElementById('auth-password').value = '';
+                try {
+                    const targetDocId = foundUser.id || sanitizeDocId(email);
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId), { password });
+                    showToast('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', 'bg-green-600');
+                    switchAuthTab('login');
+                    document.getElementById('auth-password').value = '';
+                } catch (err) {
+                    console.error('Reset password error:', err);
+                    showToast('ไม่สามารถรีเซ็ตรหัสผ่านได้', 'bg-red-600');
+                }
             }
         };
 
         function completeLogin(user) {
             currentUser = user;
-            localStorage.setItem('firesafe_current_user', JSON.stringify(user));
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('main-app-container').classList.remove('hidden');
             updateUserInterface();
@@ -945,7 +992,6 @@
 
         window.logoutSystem = function() {
             currentUser = null;
-            localStorage.removeItem('firesafe_current_user');
             document.getElementById('main-app-container').classList.add('hidden');
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('auth-password').value = '';
@@ -1016,7 +1062,6 @@
 
         // ฟังก์ชันสำหรับหน้า Admin Management
         window.renderAdminPanel = function() {
-            syncDataFromStorage();
             const usersTbody = document.getElementById('admin-users-table');
             const contentTbody = document.getElementById('admin-content-table');
             const userCountBadge = document.getElementById('admin-user-count');
@@ -1028,13 +1073,13 @@
             if (usersTbody) {
                 let usersHtml = '';
                 registeredUsers.forEach((u, idx) => {
-                    const isCoreAdmin = u.email.toLowerCase() === 'admin';
+                    const isCoreAdmin = (u.email || '').toLowerCase() === 'admin';
                     usersHtml += `
                         <tr class="hover:bg-gray-50 transition-all">
                             <td class="p-4 font-semibold text-gray-800">${u.fullname}</td>
                             <td class="p-4 text-gray-600">${u.email}</td>
                             <td class="p-4">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isCoreAdmin || u.role.includes('Admin') ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isCoreAdmin || (u.role || '').includes('Admin') ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}">
                                     ${u.role}
                                 </span>
                             </td>
@@ -1080,7 +1125,6 @@
         };
 
         window.openEditUserModal = function(index) {
-            syncDataFromStorage();
             const user = registeredUsers[index];
             if (!user) return;
             document.getElementById('edit-user-index').value = index;
@@ -1091,7 +1135,7 @@
 
             const emailInput = document.getElementById('edit-user-email');
             const roleSelect = document.getElementById('edit-user-role');
-            if (user.email.toLowerCase() === 'admin') {
+            if ((user.email || '').toLowerCase() === 'admin') {
                 emailInput.readOnly = true;
                 emailInput.classList.add('bg-gray-100', 'cursor-not-allowed');
                 roleSelect.disabled = true;
@@ -1108,9 +1152,9 @@
             document.getElementById('edit-user-modal').classList.add('hidden');
         };
 
-        window.saveEditedUser = function(event) {
+        window.saveEditedUser = async function(event) {
             event.preventDefault();
-            syncDataFromStorage();
+            if (!isCloudReady || !auth.currentUser) return;
             const index = parseInt(document.getElementById('edit-user-index').value, 10);
             const user = registeredUsers[index];
             if (!user) return;
@@ -1125,45 +1169,51 @@
                 return;
             }
 
-            const duplicate = registeredUsers.some((u, idx) => idx !== index && u.email.toLowerCase() === newEmail);
+            const duplicate = registeredUsers.some((u, idx) => idx !== index && (u.email || '').toLowerCase() === newEmail);
             if (duplicate) {
                 showToast('ชื่อผู้ใช้งานหรืออีเมล์นี้ซ้ำกับบัญชีอื่นในระบบ', 'bg-red-600');
                 return;
             }
 
-            registeredUsers[index] = {
+            const isCoreAdmin = (user.email || '').toLowerCase() === 'admin';
+            const updatedData = {
                 fullname: newFullname,
-                email: user.email.toLowerCase() === 'admin' ? 'admin' : newEmail,
-                role: user.email.toLowerCase() === 'admin' ? 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' : newRole,
+                email: isCoreAdmin ? 'admin' : newEmail,
+                role: isCoreAdmin ? 'ผู้จัดการ / ผู้ดูแลระบบ (Admin)' : newRole,
                 password: newPassword
             };
 
-            saveUsersToStorage();
-
-            if (currentUser && currentUser.email.toLowerCase() === registeredUsers[index].email.toLowerCase()) {
-                currentUser = registeredUsers[index];
-                localStorage.setItem('firesafe_current_user', JSON.stringify(currentUser));
-                updateUserInterface();
+            try {
+                const targetDocId = user.id || sanitizeDocId(user.email);
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId), {
+                    id: targetDocId,
+                    ...updatedData
+                });
+                closeEditUserModal();
+                showToast('บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว', 'bg-green-600');
+            } catch (err) {
+                console.error('Update user error:', err);
+                showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้งาน', 'bg-red-600');
             }
-
-            closeEditUserModal();
-            renderAdminPanel();
-            showToast('บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว', 'bg-green-600');
         };
 
-        window.deleteUserAccount = function(index) {
-            syncDataFromStorage();
+        window.deleteUserAccount = async function(index) {
+            if (!isCloudReady || !auth.currentUser) return;
             const target = registeredUsers[index];
             if (!target) return;
-            if (target.email.toLowerCase() === 'admin') {
+            if ((target.email || '').toLowerCase() === 'admin') {
                 showToast('ไม่สามารถลบบัญชีผู้ดูแลระบบหลักได้', 'bg-red-600');
                 return;
             }
 
-            registeredUsers.splice(index, 1);
-            saveUsersToStorage();
-            renderAdminPanel();
-            showToast(`ลบบัญชีผู้ใช้งาน "${target.fullname}" เรียบร้อยแล้ว`, 'bg-slate-800');
+            try {
+                const targetDocId = target.id || sanitizeDocId(target.email);
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_users', targetDocId));
+                showToast(`ลบบัญชีผู้ใช้งาน "${target.fullname}" เรียบร้อยแล้ว`, 'bg-slate-800');
+            } catch (err) {
+                console.error('Delete user error:', err);
+                showToast('ไม่สามารถลบบัญชีผู้ใช้งานได้', 'bg-red-600');
+            }
         };
 
         window.toggleNotificationDropdown = function() {
@@ -1228,16 +1278,21 @@
                 if (ownerInput) ownerInput.value = defaultOwner;
             }
 
-            modal.classList.remove('hidden');
+            if (modal) modal.classList.remove('hidden');
         };
 
         window.closeCustomerModal = function() {
-            document.getElementById('customer-modal').classList.add('hidden');
+            const modal = document.getElementById('customer-modal');
+            if (modal) modal.classList.add('hidden');
             editingIndex = null;
         };
 
-        window.submitCustomerForm = function() {
-            syncDataFromStorage();
+        window.submitCustomerForm = async function() {
+            if (!isCloudReady || !auth.currentUser) {
+                showToast('กำลังเชื่อมต่อฐานข้อมูลออนไลน์ กรุณารอสักครู่...', 'bg-amber-600');
+                return;
+            }
+
             const companyName = document.getElementById('cust-company').value.trim();
             const contactName = document.getElementById('cust-contact').value.trim();
             const contactPhone = document.getElementById('cust-phone').value.trim();
@@ -1254,7 +1309,11 @@
             const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
             const ownerName = document.getElementById('cust-owner').value.trim() || (currentUser ? currentUser.fullname : 'สมชาย ยอดขาย');
 
+            const isEditing = editingIndex !== null && customerRecordsList[editingIndex];
+            const docId = isEditing ? customerRecordsList[editingIndex].id : `cust_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
             const customerData = {
+                id: docId,
                 companyName,
                 contactName,
                 email: document.getElementById('cust-email').value.trim(),
@@ -1284,31 +1343,33 @@
                 nextGoal: document.getElementById('cust-next-goal').value.trim(),
                 interestLevel: document.getElementById('cust-interest-level').value,
                 extraNotes: document.getElementById('cust-extra-notes').value.trim(),
-                dateAdded: editingIndex !== null ? customerRecordsList[editingIndex].dateAdded : todayStr,
+                dateAdded: isEditing ? customerRecordsList[editingIndex].dateAdded : todayStr,
+                createdAt: isEditing ? (customerRecordsList[editingIndex].createdAt || Date.now()) : Date.now(),
                 lastUpdated: timeStr,
-                activityAction: editingIndex !== null ? 'แก้ไขข้อมูล' : 'เพิ่มลูกค้าใหม่'
+                activityAction: isEditing ? 'แก้ไขข้อมูล' : 'เพิ่มลูกค้าใหม่'
             };
 
-            if (editingIndex !== null) {
-                customerRecordsList[editingIndex] = customerData;
-                showToast('อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว', 'bg-green-600');
-            } else {
-                customerRecordsList.unshift(customerData);
-                showToast('บันทึกข้อมูลลูกค้าใหม่เรียบร้อยแล้ว', 'bg-green-600');
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_customers', docId), customerData);
+                showToast(isEditing ? 'อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว' : 'บันทึกและซิงค์ข้อมูลลูกค้าใหม่เรียบร้อยแล้ว', 'bg-green-600');
+                closeCustomerModal();
+            } catch (err) {
+                console.error('Save customer error:', err);
+                showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลลูกค้า', 'bg-red-600');
             }
-
-            saveCustomersToStorage();
-            closeCustomerModal();
-            refreshAllViews();
         };
 
-        window.deleteCustomer = function(index) {
-            syncDataFromStorage();
+        window.deleteCustomer = async function(index) {
+            if (!isCloudReady || !auth.currentUser) return;
             if (index < 0 || index >= customerRecordsList.length) return;
-            const removed = customerRecordsList.splice(index, 1);
-            saveCustomersToStorage();
-            refreshAllViews();
-            showToast(`ลบข้อมูล "${removed[0].companyName}" เรียบร้อยแล้ว`, 'bg-slate-800');
+            const target = customerRecordsList[index];
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'crm_customers', target.id));
+                showToast(`ลบข้อมูล "${target.companyName}" เรียบร้อยแล้ว`, 'bg-slate-800');
+            } catch (err) {
+                console.error('Delete customer error:', err);
+                showToast('เกิดข้อผิดพลาดในการลบข้อมูลลูกค้า', 'bg-red-600');
+            }
         };
 
         window.changeDealFilter = function(period) {
@@ -1328,7 +1389,6 @@
         };
 
         function refreshAllViews() {
-            syncDataFromStorage();
             updateDashboardMetrics();
             renderCustomerTable();
             renderKanbanBoard();
@@ -1810,14 +1870,8 @@
             const dateInput = document.getElementById('cust-date-contacted');
             if(dateInput) dateInput.value = todayStr;
 
-            // ตรวจสอบว่าเคยเข้าสู่ระบบค้างไว้หรือไม่
-            syncDataFromStorage();
-            if (currentUser) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-app-container').classList.remove('hidden');
-                updateUserInterface();
-            }
-
+            // เริ่มเชื่อมต่อ Cloud Database เพื่อซิงค์ข้อมูลร่วมกันทั้งองค์กร
+            initCloudSync();
             refreshAllViews();
         });
     </script>
